@@ -4,14 +4,14 @@
 #define TH_TENSOR_APPLY3(TYPE1, TENSOR1, TYPE2, TENSOR2, TYPE3, TENSOR3, CODE) \
 { \
   TYPE1 *TENSOR1##_data = NULL; \
-  long *TENSOR1##_counter = NULL; \
-  long TENSOR1##_stride = 0, TENSOR1##_size = 0, TENSOR1##_dim = 0, TENSOR1##_i, TENSOR1##_n; \
+  int64_t *TENSOR1##_counter = NULL; \
+  int64_t TENSOR1##_stride = 0, TENSOR1##_size = 0, TENSOR1##_dim = 0, TENSOR1##_i, TENSOR1##_n; \
   TYPE2 *TENSOR2##_data = NULL; \
-  long *TENSOR2##_counter = NULL; \
-  long TENSOR2##_stride = 0, TENSOR2##_size = 0, TENSOR2##_dim = 0, TENSOR2##_i, TENSOR2##_n; \
+  int64_t *TENSOR2##_counter = NULL; \
+  int64_t TENSOR2##_stride = 0, TENSOR2##_size = 0, TENSOR2##_dim = 0, TENSOR2##_i, TENSOR2##_n; \
   TYPE3 *TENSOR3##_data = NULL; \
-  long *TENSOR3##_counter = NULL; \
-  long TENSOR3##_stride = 0, TENSOR3##_size = 0, TENSOR3##_dim = 0, TENSOR3##_i, TENSOR3##_n; \
+  int64_t *TENSOR3##_counter = NULL; \
+  int64_t TENSOR3##_stride = 0, TENSOR3##_size = 0, TENSOR3##_dim = 0, TENSOR3##_i, TENSOR3##_n; \
   int TH_TENSOR_APPLY_hasFinished = 0; \
 \
   TENSOR1##_n = (TENSOR1->nDimension ? 1 : 0); \
@@ -51,7 +51,7 @@
           break; \
       } \
     } \
-    TENSOR1##_counter = (long*)THAlloc(sizeof(long)*(TENSOR1##_dim+1)); \
+    TENSOR1##_counter = (int64_t*)THAlloc(sizeof(int64_t)*(TENSOR1##_dim+1)); \
     for(TENSOR1##_i = 0; TENSOR1##_i <= TENSOR1##_dim; TENSOR1##_i++) \
       TENSOR1##_counter[TENSOR1##_i] = 0; \
 \
@@ -73,7 +73,7 @@
           break; \
       } \
     } \
-    TENSOR2##_counter = (long*)THAlloc(sizeof(long)*(TENSOR2##_dim+1)); \
+    TENSOR2##_counter = (int64_t*)THAlloc(sizeof(int64_t)*(TENSOR2##_dim+1)); \
     for(TENSOR2##_i = 0; TENSOR2##_i <= TENSOR2##_dim; TENSOR2##_i++) \
       TENSOR2##_counter[TENSOR2##_i] = 0; \
 \
@@ -95,7 +95,7 @@
           break; \
       } \
     } \
-    TENSOR3##_counter = (long*)THAlloc(sizeof(long)*(TENSOR3##_dim+1)); \
+    TENSOR3##_counter = (int64_t*)THAlloc(sizeof(int64_t)*(TENSOR3##_dim+1)); \
     for(TENSOR3##_i = 0; TENSOR3##_i <= TENSOR3##_dim; TENSOR3##_i++) \
       TENSOR3##_counter[TENSOR3##_i] = 0; \
   } \
@@ -208,11 +208,11 @@
 #define TH_TENSOR_APPLY2(TYPE1, TENSOR1, TYPE2, TENSOR2, CODE) \
 { \
   TYPE1 *TENSOR1##_data = NULL; \
-  long *TENSOR1##_counter = NULL; \
-  long TENSOR1##_stride = 0, TENSOR1##_size = 0, TENSOR1##_dim = 0, TENSOR1##_i, TENSOR1##_n; \
+  int64_t *TENSOR1##_counter = NULL; \
+  int64_t TENSOR1##_stride = 0, TENSOR1##_size = 0, TENSOR1##_dim = 0, TENSOR1##_i, TENSOR1##_n; \
   TYPE2 *TENSOR2##_data = NULL; \
-  long *TENSOR2##_counter = NULL; \
-  long TENSOR2##_stride = 0, TENSOR2##_size = 0, TENSOR2##_dim = 0, TENSOR2##_i, TENSOR2##_n; \
+  int64_t *TENSOR2##_counter = NULL; \
+  int64_t TENSOR2##_stride = 0, TENSOR2##_size = 0, TENSOR2##_dim = 0, TENSOR2##_i, TENSOR2##_n; \
   int TH_TENSOR_APPLY_hasFinished = 0; \
 \
   TENSOR1##_n = (TENSOR1->nDimension ? 1 : 0); \
@@ -248,7 +248,7 @@
           break; \
       } \
     } \
-    TENSOR1##_counter = (long*)THAlloc(sizeof(long)*(TENSOR1##_dim+1)); \
+    TENSOR1##_counter = (int64_t*)THAlloc(sizeof(int64_t)*(TENSOR1##_dim+1)); \
     for(TENSOR1##_i = 0; TENSOR1##_i <= TENSOR1##_dim; TENSOR1##_i++) \
       TENSOR1##_counter[TENSOR1##_i] = 0; \
 \
@@ -270,7 +270,7 @@
           break; \
       } \
     } \
-    TENSOR2##_counter = (long*)THAlloc(sizeof(long)*(TENSOR2##_dim+1)); \
+    TENSOR2##_counter = (int64_t*)THAlloc(sizeof(int64_t)*(TENSOR2##_dim+1)); \
     for(TENSOR2##_i = 0; TENSOR2##_i <= TENSOR2##_dim; TENSOR2##_i++) \
       TENSOR2##_counter[TENSOR2##_i] = 0; \
   } \
@@ -374,8 +374,8 @@
 #define TH_TENSOR_APPLY(TYPE, TENSOR, CODE) \
 { \
   TYPE *TENSOR##_data = NULL; \
-  long *TENSOR##_counter = NULL; \
-  long TENSOR##_stride = 0, TENSOR##_size = 0, TENSOR##_dim = 0, TENSOR##_i; \
+  int64_t *TENSOR##_counter = NULL; \
+  int64_t TENSOR##_stride = 0, TENSOR##_size = 0, TENSOR##_dim = 0, TENSOR##_i; \
   int TH_TENSOR_APPLY_hasFinished = 0; \
 \
   if(TENSOR->nDimension == 0) \
@@ -413,7 +413,7 @@
     /* TENSOR##_counter tracks where we are in the storage. The offset into the */ \
     /* storage is given by storage_offset + (i * j), where i is the stride */ \
     /* vector and j is tensor_counter vector. This sets the starting position for the loop. */ \
-    TENSOR##_counter = (long*)THAlloc(sizeof(long)*(TENSOR##_dim+1)); \
+    TENSOR##_counter = (int64_t*)THAlloc(sizeof(int64_t)*(TENSOR##_dim+1)); \
     for(TENSOR##_i = 0; TENSOR##_i <= TENSOR##_dim; TENSOR##_i++) \
       TENSOR##_counter[TENSOR##_i] = 0; \
   } \

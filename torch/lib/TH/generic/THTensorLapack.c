@@ -134,7 +134,7 @@ void THTensor_(gesv)(THTensor *rb_, THTensor *ra_, THTensor *b, THTensor *a)
   lda  = n;
   ldb  = n;
 
-  ipiv = THIntTensor_newWithSize1d((long)n);
+  ipiv = THIntTensor_newWithSize1d((int64_t)n);
   THLapack_(gesv)(n, nrhs,
 		  THTensor_(data)(ra__), lda, THIntTensor_data(ipiv),
 		  THTensor_(data)(rb__), ldb, &info);
@@ -276,7 +276,7 @@ void THTensor_(geev)(THTensor *re_, THTensor *rv_, THTensor *a_, const char *job
   THTensor *work, *wi, *wr, *a;
   real wkopt;
   real *rv_data;
-  long i;
+  int64_t i;
 
   THTensor *re__ = NULL;
   THTensor *rv__ = NULL;
@@ -494,7 +494,7 @@ void THTensor_(getri)(THTensor *ra_, THTensor *a)
   m = ra__->size[0];
   n = ra__->size[1];
   lda = m;
-  ipiv = THIntTensor_newWithSize1d((long)m);
+  ipiv = THIntTensor_newWithSize1d((int64_t)m);
 
   /* Run LU */
   THLapack_(getrf)(n, n, THTensor_(data)(ra__), lda, THIntTensor_data(ipiv), &info);
@@ -530,7 +530,7 @@ void THTensor_(clearUpLoTriangle)(THTensor *a, const char *uplo)
 
   /* Build full matrix */
   real *p = THTensor_(data)(a);
-  long i, j;
+  int64_t i, j;
 
   /* Upper Triangular Case */
   if (uplo[0] == 'U')
@@ -563,7 +563,7 @@ void THTensor_(copyUpLoTriangle)(THTensor *a, const char *uplo)
 
   /* Build full matrix */
   real *p = THTensor_(data)(a);
-  long i, j;
+  int64_t i, j;
 
   /* Upper Triangular Case */
   if (uplo[0] == 'U')

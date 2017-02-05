@@ -34,16 +34,16 @@ TH_API int THGenerator_isValid(THGenerator *_generator);
 
 /* Initializes the random number generator from /dev/urandom (or on Windows
 platforms with the current time (granularity: seconds)) and returns the seed. */
-TH_API unsigned long THRandom_seed(THGenerator *_generator);
+TH_API uint64_t THRandom_seed(THGenerator *_generator);
 
 /* Initializes the random number generator with the given long "the_seed_". */
-TH_API void THRandom_manualSeed(THGenerator *_generator, unsigned long the_seed_);
+TH_API void THRandom_manualSeed(THGenerator *_generator, uint64_t the_seed_);
 
 /* Returns the starting seed used. */
-TH_API unsigned long THRandom_initialSeed(THGenerator *_generator);
+TH_API uint64_t THRandom_initialSeed(THGenerator *_generator);
 
 /* Generates a uniform 32 bits integer. */
-TH_API unsigned long THRandom_random(THGenerator *_generator);
+TH_API uint64_t THRandom_random(THGenerator *_generator);
 
 /* Generates a uniform random number on [0,1[. */
 TH_API double THRandom_uniform(THGenerator *_generator, double a, double b);
