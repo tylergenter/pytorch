@@ -20,16 +20,16 @@ THCTensor *THCSTensor_(toDense)(THCState *state, THCSTensor *self) {
   dim3 grid;
   THArgCheck(getApplyGrid(state, nnz, grid), 1, CUTORCH_DIM_WARNING);
 
-  TensorInfo<real, unsigned long> otherInfo =
-    getTensorInfo<THCTensor, unsigned long>(state, other);
-  TensorInfo<long, unsigned long> indicesInfo =
-    getTensorInfo<THCudaLongTensor, unsigned long>(state, self->indices);
-  TensorInfo<real, unsigned long> valuesInfo =
-    getTensorInfo<THCTensor, unsigned long>(state, self->values);
+  TensorInfo<real, uint64_t> otherInfo =
+    getTensorInfo<THCTensor, uint64_t>(state, other);
+  TensorInfo<int64_t, uint64_t> indicesInfo =
+    getTensorInfo<THCudaLongTensor, uint64_t>(state, self->indices);
+  TensorInfo<real, uint64_t> valuesInfo =
+    getTensorInfo<THCTensor, uint64_t>(state, self->values);
 
-  THCSTensor_toDenseKernel<unsigned long, real>
+  THCSTensor_toDenseKernel<uint64_t, real>
     <<<grid, block, 0, THCState_getCurrentStream(state)>>>(
-        otherInfo, indicesInfo, valuesInfo, (unsigned long)(nnz));
+        otherInfo, indicesInfo, valuesInfo, (uint64_t)(nnz));
 
   THCudaCheck(cudaGetLastError());
   THLongStorage_free(storage);

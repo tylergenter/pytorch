@@ -5,7 +5,7 @@
 #define ROW_PTR2(t, r) (THCTensor_(data)(THCState *state, t) + (r) * (t)->stride[0])
 #define COL_PTR2(t, c) (THCTensor_(data)(THCState *state, t) + (c) * (t)->stride[1])
 
-THCudaLongTensor *THCSTensor_(toCSR)(THCState *state, long const *indices, long dim, long nnz) {
+THCudaLongTensor *THCSTensor_(toCSR)(THCState *state, int64_t const *indices, int64_t dim, int64_t nnz) {
   THError("WARNING: Sparse Cuda Tensor op toCSR is not implemented");
   // TODO hook up with cusparse
   return NULL;

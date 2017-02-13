@@ -2498,7 +2498,7 @@ class TestTorch(TestCase):
         b += [a[0].storage()]
         b += [a[0].storage()[1:4]]
         for use_name in (False, True):
-            with tempfile.NamedTemporaryFile() as f:
+            with tempfile.NamedTemporaryFile(delete=True) as f:
                 handle = f if not use_name else f.name
                 torch.save(b, handle)
                 f.seek(0)

@@ -64,7 +64,7 @@ void $name($args)
         'THTensor*': 'thpp::Tensor*',
         'THCTensor*': 'thpp::Tensor*',
         'THIndexTensor*': 'thpp::Tensor*',
-        'THIndex_t': 'long',
+        'THIndex_t': 'int64_t',
         'real': 'double',
     }
 

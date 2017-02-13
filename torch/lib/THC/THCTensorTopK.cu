@@ -20,15 +20,15 @@
 struct FloatToSortedInt {
   inline __host__ __device__ FloatToSortedInt() {}
 
-  inline __device__ unsigned int convert(float v) const {
-    unsigned int x = __float_as_int(v);
-    unsigned int mask = (x & 0x80000000) ? 0xffffffff : 0x80000000;
+  inline __device__ uint32_t convert(float v) const {
+    uint32_t x = __float_as_int(v);
+    uint32_t mask = (x & 0x80000000) ? 0xffffffff : 0x80000000;
 
     return (x ^ mask);
   }
 
-  inline __device__ float deconvert(unsigned int v) const {
-    unsigned int mask = (v & 0x80000000) ? 0x80000000 : 0xffffffff;
+  inline __device__ float deconvert(uint32_t v) const {
+    uint32_t mask = (v & 0x80000000) ? 0x80000000 : 0xffffffff;
 
     return __int_as_float(v ^ mask);
   }
@@ -261,7 +261,7 @@ __global__ void gatherTopK(TensorInfo<float, IndexType> input,
                            IndexType numTopKSlices,
                            IndexType topKWithinSliceStride,
 
-                           TensorInfo<long, IndexType> indices,
+                           TensorInfo<int64_t, IndexType> indices,
                            IndexType indicesWithinSliceStride) {
   // Indices are limited to integer fp precision, so counts can fit in
   // int32, regardless of IndexType
@@ -278,11 +278,11 @@ __global__ void gatherTopK(TensorInfo<float, IndexType> input,
   IndexType topKSliceStartIndex =
     IndexToOffset<float, IndexType, Dim>::get(slice, topK);
   IndexType indicesSliceStartIndex =
-    IndexToOffset<long, IndexType, Dim>::get(slice, indices);
+    IndexToOffset<int64_t, IndexType, Dim>::get(slice, indices);
 
   float* inputSliceStart = &input.data[sliceStartIndex];
   float* topKSliceStart = &topK.data[topKSliceStartIndex];
-  long* indicesSliceStart = &indices.data[indicesSliceStartIndex];
+  int64_t* indicesSliceStart = &indices.data[indicesSliceStartIndex];
 
   // Find the k-th highest element in our input
   float topKValue = -1.0f;
@@ -384,18 +384,18 @@ THC_API void THCudaTensor_topk(THCState* state,
                                THCudaTensor *topK,
                                THCudaLongTensor *indices,
                                THCudaTensor *input,
-                               long k, int dim, int dir, int sorted) {
+                               int64_t k, int dim, int dir, int sorted) {
   THAssert(topK != NULL && indices != NULL && input != NULL);
   THAssert(THCudaTensor_checkGPU(state, 3, topK, indices, input));
   THCCheckTensorDims(state, topK, 2);
-  long dims = THCudaLongTensor_nDimension(state, indices);
+  int64_t dims = THCudaLongTensor_nDimension(state, indices);
   THArgCheck(dims <= MAX_CUTORCH_DIMS, 2, CUTORCH_DIM_WARNING);
   THCCheckTensorDims(state, input, 2);
 
   int numDims = THCudaTensor_nDimension(state, input);
   THArgCheck(dim >= 0 && dim < numDims, 3, "dim not in range");
 
-  long sliceSize = THCudaTensor_size(state, input, dim);
+  int64_t sliceSize = THCudaTensor_size(state, input, dim);
   THArgCheck(k > 0 && k <= sliceSize, 2, "k not in range for dimension");
 
   // Build the output size, which is the dim being selected set to
@@ -445,7 +445,7 @@ THC_API void THCudaTensor_topk(THCState* state,
     getTensorInfo<THCudaTensor, INDEX_T>(state, input);                 \
   TensorInfo<float, INDEX_T> topKInfo =                                 \
     getTensorInfo<THCudaTensor, INDEX_T>(state, topK);                  \
-  TensorInfo<long, INDEX_T> indicesInfo =                               \
+  TensorInfo<int64_t, INDEX_T> indicesInfo =                            \
     getTensorInfo<THCudaLongTensor, INDEX_T>(state, indices);           \
                                                                         \
   /* We use these structures solely to find the offset to */            \
@@ -459,8 +459,8 @@ THC_API void THCudaTensor_topk(THCState* state,
   int collapseTopKDim = topKInfo.collapseDims(dim);                     \
   int collapseIndicesDim = indicesInfo.collapseDims(dim);               \
                                                                         \
-  long inputSlices = 1;                                                 \
-  long topKSlices = 1;                                                  \
+  int64_t inputSlices = 1;                                              \
+  int64_t topKSlices = 1;                                               \
   for (int i = 0; i < numDims; ++i) {                                   \
     inputSlices *= inputInfo.sizes[i];                                  \
     topKSlices *= topKInfo.sizes[i];                                    \
@@ -471,7 +471,7 @@ THC_API void THCudaTensor_topk(THCState* state,
     THError("Slice to sort is too large");                              \
   }                                                                     \
                                                                         \
-  dim3 block(std::min(THCRoundUp(sliceSize, 32L), 1024L));              \
+  dim3 block(std::min(THCRoundUp(sliceSize, (int64_t) 32), (int64_t) 1024)); \
                                                                         \
   /* This is used as a template parameter to calculate indices. */      \
   /* We only specialize it if all collapsed dim sizes are the */        \
@@ -489,9 +489,9 @@ THC_API void THCudaTensor_topk(THCState* state,
   if (TensorUtils<THCudaTensor>::canUse32BitIndexMath(state, input) &&
       TensorUtils<THCudaTensor>::canUse32BitIndexMath(state, topK) &&
       TensorUtils<THCudaLongTensor>::canUse32BitIndexMath(state, indices)) {
-    RUN_T(unsigned int);
+    RUN_T(uint32_t);
   } else {
-    RUN_T(unsigned long);
+    RUN_T(uint64_t);
   }
 #undef RUN_T
 #undef RUN_DIM

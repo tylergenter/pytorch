@@ -24,12 +24,12 @@ struct thc_tensor_traits {};
 namespace thpp {
 
 template<typename real>
-struct THCTensor : public interface_traits<real>::tensor_interface_type {
-  friend class THCTensor<unsigned char>;
-  friend class THCTensor<char>;
-  friend class THCTensor<short>;
-  friend class THCTensor<int>;
-  friend class THCTensor<long>;
+struct THPP_CLASS THCTensor : public interface_traits<real>::tensor_interface_type {
+  friend class THCTensor<uint8_t>;
+  friend class THCTensor<int8_t>;
+  friend class THCTensor<int16_t>;
+  friend class THCTensor<int32_t>;
+  friend class THCTensor<int64_t>;
   friend class THCTensor<float>;
   friend class THCTensor<double>;
   friend class THCTensor<half>;
@@ -51,11 +51,11 @@ public:
   virtual int nDim() const override;
   virtual long_range sizes() const override;
   virtual long_range strides() const override;
-  virtual const long* rawSizes() const override;
-  virtual const long* rawStrides() const override;
+  virtual const int64_t* rawSizes() const override;
+  virtual const int64_t* rawStrides() const override;
   virtual std::size_t storageOffset() const override;
   virtual std::size_t elementSize() const override;
-  virtual long long numel() const override;
+  virtual int64_t numel() const override;
   virtual bool isContiguous() const override;
   virtual void* data() override;
   virtual const void* data() const override;
@@ -64,8 +64,8 @@ public:
   virtual THCTensor& retain() override;
   virtual THCTensor& free() override;
 
-  virtual THCTensor& resize(const std::initializer_list<long>& new_size) override;
-  virtual THCTensor& resize(const std::vector<long>& new_size) override;
+  virtual THCTensor& resize(const std::initializer_list<int64_t>& new_size) override;
+  virtual THCTensor& resize(const std::vector<int64_t>& new_size) override;
   virtual THCTensor& resize(THLongStorage *size,
                             THLongStorage *stride) override;
   virtual THCTensor& resizeAs(const Tensor& src) override;
@@ -76,13 +76,13 @@ public:
                              THLongStorage *stride) override;
 
   virtual THCTensor& narrow(const Tensor& src, int dimension,
-                           long firstIndex, long size) override;
+                           int64_t firstIndex, int64_t size) override;
   virtual THCTensor& select(const Tensor& src, int dimension,
-                           long sliceIndex) override;
+                           int64_t sliceIndex) override;
   virtual THCTensor& transpose(const Tensor& src, int dimension1,
                               int dimension2) override;
   virtual THCTensor& unfold(const Tensor& src, int dimension,
-                           long size, long step) override;
+                           int64_t size, int64_t step) override;
 
   virtual THCTensor& fill(scalar_type value) override;
 
@@ -121,7 +121,7 @@ public:
   virtual THCTensor& match(const Tensor& m1, const Tensor& m2, scalar_type gain) override;
   virtual THCTensor& max(const Tensor& indices_, const Tensor& src, int dimension) override;
   virtual THCTensor& min(const Tensor& indices_, const Tensor& src, int dimension) override;
-  virtual THCTensor& kthvalue(const Tensor& indices_, const Tensor& src, long k, int dimension) override;
+  virtual THCTensor& kthvalue(const Tensor& indices_, const Tensor& src, int64_t k, int dimension) override;
   virtual THCTensor& mode(const Tensor& indices_, const Tensor& src, int dimension) override;
   virtual THCTensor& median(const Tensor& indices_, const Tensor& src, int dimension) override;
   virtual THCTensor& sum(const Tensor& src, int dimension) override;

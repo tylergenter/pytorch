@@ -1,6 +1,7 @@
 #ifndef THP_UTILS_H
 #define THP_UTILS_H
 
+#include <algorithm>
 #include <vector>
 #include <string>
 
@@ -12,6 +13,7 @@
 
 
 #if PY_MAJOR_VERSION == 2
+#error fixme
 #define THPUtils_checkLong(obj) ((PyLong_Check(obj) || PyInt_Check(obj)) && !PyBool_Check(obj))
 #define THPUtils_unpackLong(obj)                                               \
     (PyLong_Check(obj) ? PyLong_AsLong(obj) :                                  \
@@ -20,7 +22,7 @@
 #else
 #define THPUtils_checkLong(obj) (PyLong_Check(obj) && !PyBool_Check(obj))
 #define THPUtils_unpackLong(obj)                                               \
-    (PyLong_Check(obj) ? PyLong_AsLong(obj) :                                  \
+    (PyLong_Check(obj) ? PyLong_AsLongLong(obj) :                                  \
     (throw std::runtime_error("Could not unpack long"), 0))
 #endif
 
@@ -125,8 +127,13 @@
 #define THPByteUtils_newAccreal(value)        THPUtils_newReal_INT(value)
 
 #define THPUtils_assert(cond, ...) THPUtils_assertRet(NULL, cond, __VA_ARGS__)
+#ifdef _MSC_VER
+#define THPUtils_assertRet(value, cond, ...)                                   \
+if (!(cond)) { THPUtils_setError(__VA_ARGS__); return value; }
+#else
 #define THPUtils_assertRet(value, cond, ...)                                   \
 if (__builtin_expect(!(cond), 0)) { THPUtils_setError(__VA_ARGS__); return value; }
+#endif
 THP_API void THPUtils_setError(const char *format, ...);
 THP_API void THPUtils_invalidArguments(
         PyObject *given_args, PyObject *given_kwargs,

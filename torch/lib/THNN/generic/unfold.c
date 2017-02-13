@@ -35,7 +35,7 @@ void THNN_(unfolded_acc)(
   for(nip = 0; nip < nInputPlane; nip++)
   {
     size_t kw, kh, y, x;
-    long long ix = 0, iy = 0;
+    int64_t ix = 0, iy = 0;
     for(kh = 0; kh < kH; kh++)
     {
       for(kw = 0; kw < kW; kw++)
@@ -45,18 +45,18 @@ void THNN_(unfolded_acc)(
         if (padW > 0 || padH > 0) {
           size_t lpad,rpad;
           for(y = 0; y < outputHeight; y++) {
-            iy = (long long)(y*dH - padH + kh);
+            iy = (int64_t)(y*dH - padH + kh);
             if (iy < 0 || iy >= inputHeight) {
             } else {
               if (dW==1){
-                 ix = (long long)(0 - padW + kw);
+                 ix = (int64_t)(0 - padW + kw);
                  lpad = fmaxf(0,(int)(padW-kw));
                  rpad = fmaxf(0,(int)(padW-(kW-kw-1)));
                  THVector_(add)(dst+(size_t)(iy*inputWidth+ix+lpad), src+(size_t)(y*outputWidth+lpad), 1, outputWidth - lpad - rpad); /* note: THVector_add could handle 1 value better */
               }
               else{
                 for (x=0; x<outputWidth; x++){
-                   ix = (long long)(x*dW - padW + kw);
+                   ix = (int64_t)(x*dW - padW + kw);
                    if (ix < 0 || ix >= inputWidth){
                    }else
                      THVector_(add)(dst+(size_t)(iy*inputWidth+ix), src+(size_t)(y*outputWidth+x), 1, 1);
@@ -66,8 +66,8 @@ void THNN_(unfolded_acc)(
           }
         } else {
           for(y = 0; y < outputHeight; y++) {
-            iy = (long long)(y*dH + kh);
-            ix = (long long)(0 + kw);
+            iy = (int64_t)(y*dH + kh);
+            ix = (int64_t)(0 + kw);
             if (dW == 1 )
                THVector_(add)(dst+(size_t)(iy*inputWidth+ix), src+(size_t)(y*outputWidth), 1, outputWidth); /* note: THVector_add could handle 1 value better */
             else{
@@ -96,7 +96,7 @@ void THNN_(unfolded_copy)(
           int outputWidth,
           int outputHeight)
 {
-  long k;
+  int64_t k;
   real *input_data = THTensor_(data)(input);
   real *finput_data = THTensor_(data)(finput);
 
@@ -107,18 +107,18 @@ void THNN_(unfolded_copy)(
     size_t kh = rest / kW;
     size_t kw = rest % kW;
     size_t x,y;
-    long long ix,iy;
+    int64_t ix,iy;
     real *dst = finput_data + nip*(kH*kW*outputHeight*outputWidth) + kh*(kW*outputHeight*outputWidth) + kw*(outputHeight*outputWidth);
     real *src = input_data + nip*(inputHeight*inputWidth);
     if (padW > 0 || padH > 0) {
       size_t lpad,rpad;
       for(y = 0; y < outputHeight; y++) {
-        iy = (long long)(y*dH - padH + kh);
+        iy = (int64_t)(y*dH - padH + kh);
         if (iy < 0 || iy >= inputHeight) {
           memset(dst+y*outputWidth, 0, sizeof(real)*outputWidth);
         } else {
           if (dW==1){
-             ix = (long long)(0 - padW + kw);
+             ix = (int64_t)(0 - padW + kw);
              lpad = fmaxf(0,(int)(padW-kw));
              rpad = fmaxf(0,(int)(padW-(kW-kw-1)));
              if (outputWidth-rpad-lpad <= 0) {
@@ -131,7 +131,7 @@ void THNN_(unfolded_copy)(
           }
           else{
             for (x=0; x<outputWidth; x++){
-               ix = (long long)(x*dW - padW + kw);
+               ix = (int64_t)(x*dW - padW + kw);
                if (ix < 0 || ix >= inputWidth)
                  memset(dst+(size_t)(y*outputWidth+x), 0, sizeof(real)*1);
                else
@@ -142,8 +142,8 @@ void THNN_(unfolded_copy)(
       }
     } else {
       for(y = 0; y < outputHeight; y++) {
-        iy = (long long)(y*dH + kh);
-        ix = (long long)(0 + kw);
+        iy = (int64_t)(y*dH + kh);
+        ix = (int64_t)(0 + kw);
         if (dW == 1)
            memcpy(dst+(size_t)(y*outputWidth), src+(size_t)(iy*inputWidth+ix), sizeof(real)*outputWidth);
         else{

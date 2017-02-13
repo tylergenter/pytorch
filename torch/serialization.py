@@ -17,10 +17,9 @@ else:
 
 DEFAULT_PROTOCOL = 2
 
-LONG_SIZE = struct.Struct('=l').size
+LONG_SIZE = struct.Struct('=Q').size
 INT_SIZE = struct.Struct('=i').size
 SHORT_SIZE = struct.Struct('=h').size
-
 
 class SourceChangeWarning(Warning):
     pass

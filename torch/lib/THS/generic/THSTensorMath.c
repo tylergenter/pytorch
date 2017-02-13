@@ -5,8 +5,8 @@
 #define ROW_PTR2(t, r) (THTensor_(data)(t) + (r) * (t)->stride[0])
 #define COL_PTR2(t, c) (THTensor_(data)(t) + (c) * (t)->stride[1])
 
-THLongTensor *THSTensor_(toCSR)(long const *indices, long dim, long nnz) {
-  long h, i, hp0, hp1;
+THLongTensor *THSTensor_(toCSR)(int64_t const *indices, int64_t dim, int64_t nnz) {
+  int64_t h, i, hp0, hp1;
   THLongTensor *csr = THLongTensor_newWithSize1d(dim + 1);
   THLongTensor_zero(csr);
 
@@ -25,9 +25,9 @@ THLongTensor *THSTensor_(toCSR)(long const *indices, long dim, long nnz) {
 void THSTensor_(spaddmm)(THTensor *r_,
     real beta, THTensor *t,
     real alpha, THSTensor *sparse, THTensor *dense) {
-  long h, i;
-  long dim_i, dim_j, dim_k; // ixj * jxk = ixk
-  long nnz;
+  int64_t h, i;
+  int64_t dim_i, dim_j, dim_k; // ixj * jxk = ixk
+  int64_t nnz;
   THLongTensor *csr, *indices;
   THTensor *values;
 
@@ -60,11 +60,11 @@ void THSTensor_(spaddmm)(THTensor *r_,
   THTensor_(mul)(r_, t, beta);
 #pragma omp parallel for private(h, i) schedule(static) if (nnz > 10000)
   for (h = 0; h < dim_i; h++) {
-    long i_start = THTensor_fastGet1d(csr, h);
-    long i_end = THTensor_fastGet1d(csr, h+1);
+    int64_t i_start = THTensor_fastGet1d(csr, h);
+    int64_t i_end = THTensor_fastGet1d(csr, h+1);
     for (i = i_start; i < i_end; i++) {
       real val = THTensor_fastGet1d(values, i);
-      long col = THTensor_fastGet2d(indices, 1, i);
+      int64_t col = THTensor_fastGet2d(indices, 1, i);
       if (col >= 0 && col < dim_j) {
         THBlas_(axpy)(dim_k,
             alpha * val,
@@ -85,9 +85,9 @@ void THSTensor_(spaddmm)(THTensor *r_,
 void THSTensor_(sspaddmm)(THSTensor *r_,
     real beta, THSTensor *t,
     real alpha, THSTensor *sparse, THTensor *dense) {
-  long h, i, p;
-  long dim_i, dim_j, dim_k; // ixj * jxk = ixk
-  long nnz, r_nnz, t_nnz;
+  int64_t h, i, p;
+  int64_t dim_i, dim_j, dim_k; // ixj * jxk = ixk
+  int64_t nnz, r_nnz, t_nnz;
   THLongTensor *csr, *indices, *newi, *narrowi;
   THTensor *values, *newv, *narrowv;
 
@@ -137,11 +137,11 @@ void THSTensor_(sspaddmm)(THSTensor *r_,
   p = t_nnz;
 
   for (h = 0; h < dim_i; h++) {
-    long i_start = THTensor_fastGet1d(csr, h);
-    long i_end = THTensor_fastGet1d(csr, h+1);
+    int64_t i_start = THTensor_fastGet1d(csr, h);
+    int64_t i_end = THTensor_fastGet1d(csr, h+1);
     for (i = i_start; i < i_end; i++) {
       real val = THTensor_fastGet1d(values, i);
-      long col = THTensor_fastGet2d(indices, 1, i);
+      int64_t col = THTensor_fastGet2d(indices, 1, i);
       if (col >= 0 && col < dim_j) {
         THBlas_(axpy)(dim_k,
             alpha * val,
@@ -176,11 +176,11 @@ void THSTensor_(sspaddmm)(THSTensor *r_,
 }
 
 void THSTensor_(spcadd)(THTensor *r_, THTensor *dense, real value, THSTensor *sparse) {
-  long k;
+  int64_t k;
   THLongTensor  *indices = THSTensor_(indices)(sparse);
   THTensor      *values = THSTensor_(values)(sparse);
   THLongStorage *storage = THSTensor_(newSizeOf)(sparse);
-  long          *sizes = storage->data;
+  int64_t          *sizes = storage->data;
 
   THTensor_(resizeAs)(r_, dense);
   THSTensor_(contiguous)(sparse);
@@ -189,8 +189,8 @@ void THSTensor_(spcadd)(THTensor *r_, THTensor *dense, real value, THSTensor *sp
 
 #pragma omp parallel for private(k)
   for (k = 0; k < sparse->nnz; k++) {
-    long index = r_->storageOffset;
-    for (long d = 0; d < sparse->nDimension; d++)
+    int64_t index = r_->storageOffset;
+    for (int64_t d = 0; d < sparse->nDimension; d++)
       index += r_->stride[d] * THTensor_fastGet2d(indices, d, k);
     r_->storage->data[index]  += value * THTensor_fastGet1d(values, k);
   }

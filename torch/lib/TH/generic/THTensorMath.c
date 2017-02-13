@@ -583,6 +583,7 @@ void THTensor_(clamp)(THTensor *r_, THTensor *t, real min_value, real max_value)
 
 void THTensor_(cadd)(THTensor *r_, THTensor *t, real value, THTensor *src)
 {
+  // __debugbreak();
   THTensor_(resizeAs)(r_, t);
   if (THTensor_(isContiguous)(r_) && THTensor_(isContiguous)(t) && THTensor_(isContiguous)(src) && THTensor_(nElement)(r_) == THTensor_(nElement)(src)) {
     if(r_ == t) {

@@ -11,7 +11,7 @@ int THSTensor_(nDimension)(const THSTensor *self)
   return self->nDimension;
 }
 
-long THSTensor_(size)(const THSTensor *self, int dim)
+int64_t THSTensor_(size)(const THSTensor *self, int dim)
 {
   THArgCheck((dim >= 0) && (dim < self->nDimension), 1, "dimension %d out of range of %dD tensor",
       dim+1, THSTensor_(nDimension)(self));
@@ -64,11 +64,11 @@ static void THSTensor_(rawInit)(THSTensor *self)
   // self->flag = TH_TENSOR_REFCOUNTED;
 }
 
-static void THSTensor_(rawResize)(THSTensor *self, int nDim, long *size) {
+static void THSTensor_(rawResize)(THSTensor *self, int nDim, int64_t *size) {
   // Only resize valid sizes into tensor.
-  self->size = THRealloc(self->size, sizeof(long)*nDim);
+  self->size = THRealloc(self->size, sizeof(int64_t)*nDim);
 
-  long d, nDim_ = 0;
+  int64_t d, nDim_ = 0;
   for (d = 0; d < nDim; d++)
     if (size[d] > 0)
       self->size[nDim_++] = size[d];
@@ -111,7 +111,7 @@ THSTensor *THSTensor_(newWithTensor)(THLongTensor *indices, THTensor *values)
 
 THSTensor *THSTensor_(newWithTensorAndSize)(THLongTensor *indices, THTensor *values, THLongStorage *sizes)
 {  // If sizes are not given, it is inferred as max index of each dim.
-  long nDim;
+  int64_t nDim;
   THLongTensor *ignore;
 
   THSTensor *self = THAlloc(sizeof(THSTensor));
@@ -144,24 +144,24 @@ THSTensor *THSTensor_(newWithSize)(THLongStorage *size)
   return self;
 }
 
-THSTensor *THSTensor_(newWithSize1d)(long size0)
+THSTensor *THSTensor_(newWithSize1d)(int64_t size0)
 {
   return THSTensor_(newWithSize4d)(size0, -1, -1, -1);
 }
 
-THSTensor *THSTensor_(newWithSize2d)(long size0, long size1)
+THSTensor *THSTensor_(newWithSize2d)(int64_t size0, int64_t size1)
 {
   return THSTensor_(newWithSize4d)(size0, size1, -1, -1);
 }
 
-THSTensor *THSTensor_(newWithSize3d)(long size0, long size1, long size2)
+THSTensor *THSTensor_(newWithSize3d)(int64_t size0, int64_t size1, int64_t size2)
 {
   return THSTensor_(newWithSize4d)(size0, size1, size2, -1);
 }
 
-THSTensor *THSTensor_(newWithSize4d)(long size0, long size1, long size2, long size3)
+THSTensor *THSTensor_(newWithSize4d)(int64_t size0, int64_t size1, int64_t size2, int64_t size3)
 {
-  long size[4] = {size0, size1, size2, size3};
+  int64_t size[4] = {size0, size1, size2, size3};
 
   THSTensor *self = THAlloc(sizeof(THSTensor));
   THSTensor_(rawInit)(self);
@@ -207,24 +207,24 @@ THSTensor *THSTensor_(resize)(THSTensor *self, THLongStorage *size)
   return self;
 }
 
-THSTensor *THSTensor_(resize1d)(THSTensor *self, long size0)
+THSTensor *THSTensor_(resize1d)(THSTensor *self, int64_t size0)
 {
   return THSTensor_(resize4d)(self, size0, -1, -1, -1);
 }
 
-THSTensor *THSTensor_(resize2d)(THSTensor *self, long size0, long size1)
+THSTensor *THSTensor_(resize2d)(THSTensor *self, int64_t size0, int64_t size1)
 {
   return THSTensor_(resize4d)(self, size0, size1, -1, -1);
 }
 
-THSTensor *THSTensor_(resize3d)(THSTensor *self, long size0, long size1, long size2)
+THSTensor *THSTensor_(resize3d)(THSTensor *self, int64_t size0, int64_t size1, int64_t size2)
 {
   return THSTensor_(resize4d)(self, size0, size1, size2, -1);
 }
 
-THSTensor *THSTensor_(resize4d)(THSTensor *self, long size0, long size1, long size2, long size3)
+THSTensor *THSTensor_(resize4d)(THSTensor *self, int64_t size0, int64_t size1, int64_t size2, int64_t size3)
 {
-  long size[4] = {size0, size1, size2, size3};
+  int64_t size[4] = {size0, size1, size2, size3};
   THSTensor_(rawResize)(self, 4, size);
   return self;
 }
@@ -232,14 +232,14 @@ THSTensor *THSTensor_(resize4d)(THSTensor *self, long size0, long size1, long si
 THTensor *THSTensor_(toDense)(THSTensor *self) {
   int d, k, index;
   ptrdiff_t nnz;
-  long ndim, indskip;
-  long *sizes;
+  int64_t ndim, indskip;
+  int64_t *sizes;
   THLongStorage *storage;
 
   THTensor *other_, *values_;
   real *other, *values;
   THLongTensor *indices_;
-  long *indices;
+  int64_t *indices;
 
   THSTensor_(contiguous)(self);
 
@@ -278,7 +278,7 @@ void THSTensor_(transpose)(THSTensor *self, int d1, int d2) {
   THLongTensor *indices = THSTensor_(indices)(self);
   ptrdiff_t i;
   for (i = 0; i < THSTensor_(nnz)(self); i++) {
-    long tmp = THTensor_fastGet2d(indices, d1, i);
+    int64_t tmp = THTensor_fastGet2d(indices, d1, i);
     THTensor_fastSet2d(indices, d1, i,
         THTensor_fastGet2d(indices, d2, i));
     THTensor_fastSet2d(indices, d2, i, tmp);
@@ -298,11 +298,11 @@ void THSTensor_(reorder)(THSTensor *self) {
   /* TODO: We do an insertion sort here, should change to quicksort or shellsort
   */
   if (self->nnz < 2) return;
-  long d, i, j, p, cmp, ndim, indskip, tmplong;
+  int64_t d, i, j, p, cmp, ndim, indskip, tmplong;
   real tmpreal;
   THLongTensor *indices_ = self->indices;
   THTensor *values_ = self->values;
-  long *indices = THLongTensor_data(indices_);
+  int64_t *indices = THLongTensor_data(indices_);
   real *values = THTensor_(data)(values_);
   indskip = THLongTensor_size(indices_, 1); // To index indices
   ndim = THSTensor_(nDimension)(self);

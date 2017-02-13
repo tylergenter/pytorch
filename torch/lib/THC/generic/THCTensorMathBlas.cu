@@ -383,10 +383,10 @@ THCTensor_(addbmm)(THCState *state, THCTensor *result, real beta, THCTensor *t,
   THArgCheck(THCTensor_(nDimension)(state, batch1) == 3, 6, "expected 3D tensor");
   THArgCheck(THCTensor_(nDimension)(state, batch2) == 3, 7, "expected 3D tensor");
 
-  long batchnum = THCTensor_(size)(state, batch1, 0);
-  long m1d1 = THCTensor_(size)(state, batch1, 1);
-  long innerdim = THCTensor_(size)(state, batch1, 2);
-  long m2d2 = THCTensor_(size)(state, batch2, 2);
+  int64_t batchnum = THCTensor_(size)(state, batch1, 0);
+  int64_t m1d1 = THCTensor_(size)(state, batch1, 1);
+  int64_t innerdim = THCTensor_(size)(state, batch1, 2);
+  int64_t m2d2 = THCTensor_(size)(state, batch2, 2);
 
   THArgCheck(batchnum == THCTensor_(size)(state, batch2, 0), 7,
       "equal number of batches expected");
@@ -405,7 +405,7 @@ THCTensor_(addbmm)(THCState *state, THCTensor *result, real beta, THCTensor *t,
 
   THCTensor *slice1 = THCTensor_(new)(state);
   THCTensor *slice2 = THCTensor_(new)(state);
-  for (long i=0; i<batchnum; i++) {
+  for (int64_t i=0; i<batchnum; i++) {
     THCTensor_(select)(state, slice1, batch1, 0, i);
     THCTensor_(select)(state, slice2, batch2, 0, i);
 
@@ -420,8 +420,8 @@ THCTensor_(addbmm)(THCState *state, THCTensor *result, real beta, THCTensor *t,
 }
 
 __global__ void createBatchGemmBuffer(const real** buffer, real* data,
-                                      long stride, long num_batches) {
-  const long idx = blockIdx.x * blockDim.x + threadIdx.x;
+                                      int64_t stride, int64_t num_batches) {
+  const int64_t idx = blockIdx.x * blockDim.x + threadIdx.x;
   if (idx < num_batches) {
     buffer[idx] = data + idx * stride;
    }
@@ -453,7 +453,7 @@ THCTensor_(baddbmm)(THCState *state, THCTensor *result, real beta, THCTensor *t,
 
   bool transpose_result;
   char transpose_batch1, transpose_batch2;
-  long lda, ldb, ldc;
+  int64_t lda, ldb, ldc;
   THCTensor *result_, *batch1_, *batch2_;
   if (result->stride[1] == 1)
   {
@@ -523,7 +523,7 @@ THCTensor_(baddbmm)(THCState *state, THCTensor *result, real beta, THCTensor *t,
   }
 
   // Compute pointers to matrices in each batch.
-  long num_batches = result_->size[0];
+  int64_t num_batches = result_->size[0];
   size_t matrices_size = num_batches * sizeof(real*);
 
   // Copy pointers to device.
@@ -533,8 +533,8 @@ THCTensor_(baddbmm)(THCState *state, THCTensor *result, real beta, THCTensor *t,
   THCudaCheck(THCudaMalloc(state, (void**)&d_matrices2, matrices_size));
   THCudaCheck(THCudaMalloc(state, (void**)&d_result_matrices, matrices_size));
 
-  const long block = 512;
-  const long grid = (num_batches + block - 1) / block;
+  const int64_t block = 512;
+  const int64_t grid = (num_batches + block - 1) / block;
 
   createBatchGemmBuffer<<<grid, block, 0, THCState_getCurrentStream(state)>>>(
     d_matrices1, THCTensor_(data)(state, batch1_), batch1_->stride[0],

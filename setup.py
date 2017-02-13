@@ -51,8 +51,8 @@ def patched_link(self, *args, **kwargs):
     return result
 
 
-distutils.ccompiler.CCompiler.compile = parallelCCompile
-distutils.unixccompiler.UnixCCompiler.link = patched_link
+#distutils.ccompiler.CCompiler.compile = parallelCCompile
+#distutils.unixccompiler.UnixCCompiler.link = patched_link
 
 ################################################################################
 # Custom build commands
@@ -75,8 +75,8 @@ class build_deps(Command):
             build_all_cmd += ['--with-cuda']
         if WITH_DISTRIBUTED:
             build_all_cmd += ['--with-distributed']
-        if subprocess.call(build_all_cmd) != 0:
-            sys.exit(1)
+        # if subprocess.call(build_all_cmd) != 0:
+            # sys.exit(1)
         generate_nn_wrappers()
 
 
@@ -169,7 +169,10 @@ class clean(distutils.command.clean.clean):
 
 include_dirs = []
 extra_link_args = []
-extra_compile_args = ['-std=c++11', '-Wno-write-strings']
+if platform.system() == 'Windows':
+  extra_compile_args = ['/Z7', '/EHa']
+else:
+  extra_compile_args = ['-std=c++11', '-Wno-write-strings']
 if os.getenv('PYTORCH_BINARY_BUILD') and platform.system() == 'Linux':
     print('PYTORCH_BINARY_BUILD found. Static linking libstdc++ on Linux')
     extra_compile_args += ['-static-libstdc++']
@@ -188,7 +191,11 @@ include_dirs += [
     tmp_install_path + "/include/THNN",
 ]
 
-extra_link_args.append('-L' + lib_path)
+if platform.system() == 'Windows':
+    extra_link_args.append('/LIBPATH:' + lib_path)
+    extra_link_args.append('/DEBUG:FULL')
+else:
+    extra_link_args.append('-L' + lib_path)
 
 # we specify exact lib names to avoid conflict with lua-torch installs
 TH_LIB = os.path.join(lib_path, 'libTH.so.1')
@@ -208,6 +215,14 @@ if platform.system() == 'Darwin':
     THCUNN_LIB = os.path.join(lib_path, 'libTHCUNN.1.dylib')
     THPP_LIB = os.path.join(lib_path, 'libTHPP.1.dylib')
     THD_LIB = os.path.join(lib_path, 'libTHD.1.dylib')
+if platform.system() == 'Windows':
+    TH_LIB = os.path.join(lib_path, 'TH.lib')
+    THS_LIB = os.path.join(lib_path, 'THS.lib')
+    THC_LIB = os.path.join(lib_path, 'THC.lib')
+    THCS_LIB = os.path.join(lib_path, 'THCS.lib')
+    THNN_LIB = os.path.join(lib_path, 'THNN.lib')
+    THCUNN_LIB = os.path.join(lib_path, 'THCUNN.lib')
+    THPP_LIB = os.path.join(lib_path, 'THPP.lib')
 
 main_compile_args = ['-D_THP_CORE']
 main_libraries = ['shm']
@@ -298,6 +313,8 @@ if DEBUG:
 def make_relative_rpath(path):
     if platform.system() == 'Darwin':
         return '-Wl,-rpath,@loader_path/' + path
+    elif platform.system() == 'Windows':
+        return ''
     else:
         return '-Wl,-rpath,$ORIGIN/' + path
 
@@ -318,11 +335,12 @@ C = Extension("torch._C",
               )
 extensions.append(C)
 
-DL = Extension("torch._dl",
-               sources=["torch/csrc/dl.c"],
-               language='c',
-               )
-extensions.append(DL)
+if platform.system() != 'Windows':
+    DL = Extension("torch._dl",
+                   sources=["torch/csrc/dl.c"],
+                   language='c',
+                   )
+    extensions.append(DL)
 
 THNN = Extension("torch._thnn._THNN",
                  sources=['torch/csrc/nn/THNN.cpp'],
@@ -332,6 +350,7 @@ THNN = Extension("torch._thnn._THNN",
                  extra_link_args=extra_link_args + [
                      TH_LIB,
                      THNN_LIB,
+                     'build/temp.win-amd64-3.5/Release/torch/csrc/_C.cp35-win_amd64.lib',
                      make_relative_rpath('../lib'),
                  ]
                  )

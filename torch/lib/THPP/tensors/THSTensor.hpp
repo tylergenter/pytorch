@@ -11,7 +11,7 @@
 
 namespace thpp {
 
-template<typename real>
+template<typename T>
 struct ths_tensor_traits {};
 
 #include "tensors/generic/THSTensor.hpp"
@@ -22,12 +22,12 @@ struct ths_tensor_traits {};
 namespace thpp {
 
 template<typename real>
-struct THSTensor : public interface_traits<real>::tensor_interface_type {
-  friend class THSTensor<unsigned char>;
-  friend class THSTensor<char>;
-  friend class THSTensor<short>;
-  friend class THSTensor<int>;
-  friend class THSTensor<long>;
+struct THPP_CLASS THSTensor : public interface_traits<real>::tensor_interface_type {
+  friend class THSTensor<uint8_t>;
+  friend class THSTensor<int8_t>;
+  friend class THSTensor<int16_t>;
+  friend class THSTensor<int32_t>;
+  friend class THSTensor<int64_t>;
   friend class THSTensor<float>;
   friend class THSTensor<double>;
 
@@ -48,11 +48,11 @@ public:
   virtual int nDim() const override;
   virtual long_range sizes() const override;
   virtual long_range strides() const override;
-  virtual const long* rawSizes() const override;
-  virtual const long* rawStrides() const override;
+  virtual const int64_t* rawSizes() const override;
+  virtual const int64_t* rawStrides() const override;
   virtual std::size_t storageOffset() const override;
   virtual std::size_t elementSize() const override;
-  virtual long long numel() const override;
+  virtual int64_t numel() const override;
   virtual bool isContiguous() const override;
   virtual void* data() override;
   virtual const void* data() const override;
@@ -61,8 +61,8 @@ public:
   virtual THSTensor& retain() override;
   virtual THSTensor& free() override;
 
-  virtual THSTensor& resize(const std::initializer_list<long>& new_size) override;
-  virtual THSTensor& resize(const std::vector<long>& new_size) override;
+  virtual THSTensor& resize(const std::initializer_list<int64_t>& new_size) override;
+  virtual THSTensor& resize(const std::vector<int64_t>& new_size) override;
   virtual THSTensor& resize(THLongStorage *size,
                             THLongStorage *stride) override;
   virtual THSTensor& resizeAs(const Tensor& src) override;
@@ -73,13 +73,13 @@ public:
                                 THLongStorage *stride) override;
 
   virtual THSTensor& narrow(const Tensor& src, int dimension,
-                           long firstIndex, long size) override;
+                           int64_t firstIndex, int64_t size) override;
   virtual THSTensor& select(const Tensor& src, int dimension,
-                            long sliceIndex) override;
+                            int64_t sliceIndex) override;
   virtual THSTensor& transpose(const Tensor& src, int dimension1,
                                int dimension2) override;
   virtual THSTensor& unfold(const Tensor& src, int dimension,
-                            long size, long step) override;
+                            int64_t size, int64_t step) override;
 
   virtual THSTensor& fill(scalar_type value) override;
 
@@ -118,7 +118,7 @@ public:
   virtual THSTensor& match(const Tensor& m1, const Tensor& m2, scalar_type gain) override;
   virtual THSTensor& max(const Tensor& indices_, const Tensor& src, int dimension) override;
   virtual THSTensor& min(const Tensor& indices_, const Tensor& src, int dimension) override;
-  virtual THSTensor& kthvalue(const Tensor& indices_, const Tensor& src, long k, int dimension) override;
+  virtual THSTensor& kthvalue(const Tensor& indices_, const Tensor& src, int64_t k, int dimension) override;
   virtual THSTensor& mode(const Tensor& indices_, const Tensor& src, int dimension) override;
   virtual THSTensor& median(const Tensor& indices_, const Tensor& src, int dimension) override;
   virtual THSTensor& sum(const Tensor& src, int dimension) override;

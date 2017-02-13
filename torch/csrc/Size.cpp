@@ -9,7 +9,7 @@ struct THPSize {
   PyTupleObject tuple;
 };
 
-PyObject * THPSize_New(int dim, long *sizes)
+PyObject * THPSize_New(int dim, int64_t *sizes)
 {
   PyTypeObject* type = (PyTypeObject*)THPSizeClass;
   PyObject* self = type->tp_alloc(type, dim);
@@ -17,7 +17,7 @@ PyObject * THPSize_New(int dim, long *sizes)
     return NULL;
   }
   for (int i = 0; i < dim; ++i) {
-    PyTuple_SET_ITEM(self, i, PyLong_FromLong(sizes[i]));
+    PyTuple_SET_ITEM(self, i, PyLong_FromLongLong(sizes[i]));
   }
   return self;
 }
@@ -44,7 +44,7 @@ static PyObject * THPSize_repr(THPSize *self)
     if (i != 0) {
       repr += ", ";
     }
-    repr += std::to_string(PyLong_AsLong(PyTuple_GET_ITEM(self, i)));
+    repr += std::to_string(PyLong_AsLongLong(PyTuple_GET_ITEM(self, i)));
   }
   repr += "])";
 #if PY_MAJOR_VERSION == 2

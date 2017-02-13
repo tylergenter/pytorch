@@ -12,12 +12,12 @@ static void THNN_(LookupTable_resetCount)(
 
   for (i = 0; i<numel; i++)
   {
-    long k = input_data[i] - TH_INDEX_BASE;
+    int64_t k = input_data[i] - TH_INDEX_BASE;
     count_data[k] = 0;
   }
   for (i = 0; i<numel; i++)
   {
-    long k = input_data[i] - TH_INDEX_BASE;
+    int64_t k = input_data[i] - TH_INDEX_BASE;
     count_data[k]++;
   }
 }
@@ -54,7 +54,7 @@ void THNN_(LookupTable_accGradParameters)(
 
   THIndex_t *input_data = THIndexTensor_(data)(input);
   ptrdiff_t numel = THIndexTensor_(nElement)(input);
-  long numw = THTensor_(size)(gradWeight, 0);
+  int64_t numw = THTensor_(size)(gradWeight, 0);
 
   // check that inputs are all within range
   for (i=0; i<numel; i++)
@@ -68,7 +68,7 @@ void THNN_(LookupTable_accGradParameters)(
 
   real *gw = THTensor_(data)(gradWeight);
   real *go = THTensor_(data)(gradOutput);
-  long stride = THTensor_(stride)(gradWeight, 0);
+  int64_t stride = THTensor_(stride)(gradWeight, 0);
 
   if (count_data)
     THNN_(LookupTable_resetCount)(count_data, input);
@@ -85,13 +85,13 @@ void THNN_(LookupTable_accGradParameters)(
       int tid = omp_get_thread_num();
       int nthreads = omp_get_num_threads();
 
-      long start = tid * (numw/nthreads + 1);
-      long end = start + (numw/nthreads + 1);
+      int64_t start = tid * (numw/nthreads + 1);
+      int64_t end = start + (numw/nthreads + 1);
       for (i=0; i<numel; i++)
       {
         if (input_data[i] != paddingValue)
         {
-            long k = input_data[i] - TH_INDEX_BASE;
+            int64_t k = input_data[i] - TH_INDEX_BASE;
             if (k >= start && k < end)
             {
                 real scale_ = scale;
@@ -111,7 +111,7 @@ void THNN_(LookupTable_accGradParameters)(
   {
     if (input_data[i] != paddingValue)
     {
-        long k = input_data[i] - TH_INDEX_BASE;
+        int64_t k = input_data[i] - TH_INDEX_BASE;
         real scale_ = scale;
         if (count_data) scale_ /= count_data[k];
         THBlas_(axpy)(stride, scale_, go + i*stride, 1, gw + k*stride, 1);
@@ -127,13 +127,13 @@ void THNN_(LookupTable_accGradParameters)(
 
 static void THNN_(LookupTable_renormRow)(
           real *row_data,
-          long stride,
+          int64_t stride,
           real maxNorm,
           real normType)
 {
   real norm = 0;
   real new_norm;
-  long j;
+  int64_t j;
   for (j=0; j<stride; j++)
   {
     if (normType == 1) {
@@ -179,8 +179,8 @@ void THNN_(LookupTable_renorm)(
   THIndex_t *row_idx = THIndexTensor_(data)(idx);
   ptrdiff_t numel = THIndexTensor_(nElement)(idx);
 
-  long numw = THTensor_(size)(weight, 0);
-  long stride = THTensor_(stride)(weight, 0);
+  int64_t numw = THTensor_(size)(weight, 0);
+  int64_t stride = THTensor_(stride)(weight, 0);
   real *gw = THTensor_(data)(weight);
   for (i=0; i<numel; i++) {
     if (row_idx[i] < TH_INDEX_BASE || row_idx[i] >= numw + TH_INDEX_BASE) {
@@ -206,7 +206,7 @@ void THNN_(LookupTable_renorm)(
     #pragma omp parallel for private(i)
     for (i=0; i<numel; i++)
     {
-      long k = row_idx[i] - TH_INDEX_BASE;
+      int64_t k = row_idx[i] - TH_INDEX_BASE;
       THNN_(LookupTable_renormRow)(gw + k*stride, stride, maxNorm, normType);
     }
     return;
@@ -214,7 +214,7 @@ void THNN_(LookupTable_renorm)(
 #endif
   for (i=0; i<numel; i++)
   {
-    long k = row_idx[i] - TH_INDEX_BASE;
+    int64_t k = row_idx[i] - TH_INDEX_BASE;
     THNN_(LookupTable_renormRow)(gw + k*stride, stride, maxNorm, normType);
   }
 }

@@ -5,11 +5,11 @@
   defined_if: "!IS_CUDA"
   sparse: yes
   options:
-  - return: long
+  - return: int64_t
     cname: size
     arguments:
     - THSTensor* self
-    - long dim
+    - int dim
   - return: THLongStorage*
     cname: newSizeOf
     arguments:
@@ -21,7 +21,7 @@
   defined_if: "!IS_CUDA"
   sparse: yes
   python_name: ndimension
-  return: long
+  return: int64_t
   arguments:
   - THSTensor* self
 ]]
@@ -30,7 +30,7 @@
   name: nnz
   defined_if: "!IS_CUDA"
   sparse: yes
-  return: long
+  return: int64_t
   arguments:
   - THSTensor* self
 ]]
@@ -90,8 +90,8 @@
   return: THSTensor*
   arguments:
   - THSTensor* self
-  - long dim0
-  - long dim1
+  - int dim0
+  - int dim1
 ]]
 
 [[
@@ -102,8 +102,8 @@
   return: argument 0
   arguments:
   - THSTensor* self
-  - long dim0
-  - long dim1
+  - int dim0
+  - int dim1
 ]]
 
 [[
@@ -114,8 +114,8 @@
   cname: spaddmm
   return: argument 0
   before_call: |
-    long s1 = THSTensor_(size)(LIBRARY_STATE ((THSPTensor*)$arg4)->cdata, 0);
-    long s2 = THTensor_(size)(LIBRARY_STATE ((THPTensor*)$arg5)->cdata, 1);
+    int64_t s1 = THSTensor_(size)(LIBRARY_STATE ((THSPTensor*)$arg4)->cdata, 0);
+    int64_t s2 = THTensor_(size)(LIBRARY_STATE ((THPTensor*)$arg5)->cdata, 1);
     THTensor_(resize2d)(LIBRARY_STATE ((THPTensor*)$arg0)->cdata, s1, s2);
   arguments:
     - arg: THTensor* result
@@ -135,8 +135,8 @@
   cname: sspaddmm
   return: argument 0
   before_call: |
-    long s1 = THSTensor_(size)(LIBRARY_STATE ((THSPTensor*)$arg4)->cdata, 0);
-    long s2 = THTensor_(size)(LIBRARY_STATE ((THPTensor*)$arg5)->cdata, 1);
+    int64_t s1 = THSTensor_(size)(LIBRARY_STATE ((THSPTensor*)$arg4)->cdata, 0);
+    int64_t s2 = THTensor_(size)(LIBRARY_STATE ((THPTensor*)$arg5)->cdata, 1);
     THSTensor_(resize2d)(LIBRARY_STATE ((THSPTensor*)$arg0)->cdata, s1, s2);
   arguments:
     - arg: THSTensor* result

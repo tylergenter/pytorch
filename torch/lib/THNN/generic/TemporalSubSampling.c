@@ -50,7 +50,7 @@ void THNN_(TemporalSubSampling_updateOutput)(
 {
   THTensor *outputFrame, *inputWindow;
   int nInputFrame, nOutputFrame;
-  long k;
+  int64_t k;
   
   THNN_(TemporalSubSampling_shapeCheck)(state, input, NULL, kW, dW, &inputFrameSize);
 
@@ -89,7 +89,7 @@ void THNN_(TemporalSubSampling_updateGradInput)(
 
   THTensor *gradOutputFrame;
   THTensor *gradInputWindow, *buffer, *kwunit;
-  long k;
+  int64_t k;
 
   THNN_(TemporalSubSampling_shapeCheck)(state, input, gradOutput, kW, dW, NULL);
 
@@ -128,7 +128,7 @@ void THNN_(TemporalSubSampling_accGradParameters)(
 {
   THTensor *gradOutputFrame;
   THTensor *inputWindow, *buffer;
-  long k;
+  int64_t k;
 
   THNN_(TemporalSubSampling_shapeCheck)(state, input, gradOutput, kW, dW, NULL);
   gradOutputFrame = THTensor_(new)();

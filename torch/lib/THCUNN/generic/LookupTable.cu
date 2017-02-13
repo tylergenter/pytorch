@@ -29,7 +29,7 @@ void THNN_(LookupTable_accGradParameters)(
   }
 
   ptrdiff_t numel = THCIndexTensor_(nElement)(state, input);
-  long stride = gradWeight->stride[0];
+  int64_t stride = gradWeight->stride[0];
 
   cudaStream_t stream = THCState_getCurrentStream(state);
 
@@ -92,8 +92,8 @@ void THNN_(LookupTable_accGradParameters)(
       thrust::make_reverse_iterator(sorted_ptr),
       thrust::make_reverse_iterator(count_ptr + numel),
       thrust::make_reverse_iterator(count_ptr + numel),
-      thrust::equal_to<long>(),
-      thrust::maximum<long>()
+      thrust::equal_to<int64_t>(),
+      thrust::maximum<int64_t>()
     );
   }
 
@@ -134,7 +134,7 @@ void THNN_(LookupTable_renorm)(
     THError("non-positive-norm not supported");
 
   THCIndex_t numel = THCIndexTensor_(nElement)(state, idx);
-  long stride = weight->stride[0];
+  int64_t stride = weight->stride[0];
 
   // get the unique indices
   thrust::device_ptr<real> weight_ptr(THCTensor_(data)(state, weight));

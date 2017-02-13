@@ -32,12 +32,12 @@ static inline void THNN_(SpatialConvolutionMM_shapeCheck)(
   THNN_ARGCHECK(ndim == 3 || ndim == 4, 2, input,
 		"3D or 4D input tensor expected but got: %s");
 
-  long nInputPlane  = weight->size[1] / (kH * kW);
-  long inputHeight  = input->size[dimh];
-  long inputWidth   = input->size[dimw];
-  long nOutputPlane = weight->size[0];
-  long outputHeight = (inputHeight + 2*padH - kH) / dH + 1;
-  long outputWidth  = (inputWidth + 2*padW - kW) / dW + 1;
+  int64_t nInputPlane  = weight->size[1] / (kH * kW);
+  int64_t inputHeight  = input->size[dimh];
+  int64_t inputWidth   = input->size[dimw];
+  int64_t nOutputPlane = weight->size[0];
+  int64_t outputHeight = (inputHeight + 2*padH - kH) / dH + 1;
+  int64_t outputWidth  = (inputWidth + 2*padW - kW) / dW + 1;
 
   if (outputWidth < 1 || outputHeight < 1)
     THError("Given input size: (%d x %d x %d). "
@@ -65,14 +65,14 @@ static void THNN_(SpatialConvolutionMM_updateOutput_frame)(
           int dH,
           int padW,
           int padH,
-          long nInputPlane,
-          long inputWidth,
-          long inputHeight,
-          long nOutputPlane,
-          long outputWidth,
-          long outputHeight)
+          int64_t nInputPlane,
+          int64_t inputWidth,
+          int64_t inputHeight,
+          int64_t nOutputPlane,
+          int64_t outputWidth,
+          int64_t outputHeight)
 {
-  long i;
+  int64_t i;
   THTensor *output2d;
 
   THNN_(unfolded_copy)(finput, input, kW, kH, dW, dH, padW, padH,
@@ -114,8 +114,8 @@ void THNN_(SpatialConvolutionMM_updateOutput)(
   int freeWeight = 0;
 
   if (weight->nDimension == 4) {
-    long s1 = weight->size[0];
-    long s2 = weight->size[1] * weight->size[2] * weight->size[3];
+    int64_t s1 = weight->size[0];
+    int64_t s2 = weight->size[1] * weight->size[2] * weight->size[3];
     weight = THTensor_(newWithStorage2d)(weight->storage, weight->storageOffset,
 					 s1, -1, s2, -1);
     freeWeight = 1;
@@ -136,12 +136,12 @@ void THNN_(SpatialConvolutionMM_updateOutput)(
     dimw++;
   }
 
-  long nInputPlane = input->size[dimf];
-  long inputHeight  = input->size[dimh];
-  long inputWidth   = input->size[dimw];
-  long nOutputPlane = weight->size[0];
-  long outputHeight = (inputHeight + 2*padH - kH) / dH + 1;
-  long outputWidth  = (inputWidth + 2*padW - kW) / dW + 1;
+  int64_t nInputPlane = input->size[dimf];
+  int64_t inputHeight  = input->size[dimh];
+  int64_t inputWidth   = input->size[dimw];
+  int64_t nOutputPlane = weight->size[0];
+  int64_t outputHeight = (inputHeight + 2*padH - kH) / dH + 1;
+  int64_t outputWidth  = (inputWidth + 2*padW - kW) / dW + 1;
 
   if(input->nDimension == 3)
   {
@@ -156,8 +156,8 @@ void THNN_(SpatialConvolutionMM_updateOutput)(
   }
   else
   {
-    long T = input->size[0];
-    long t;
+    int64_t T = input->size[0];
+    int64_t t;
 
     THTensor_(resize3d)(finput, T, kW*kH*nInputPlane, outputHeight*outputWidth);
     THTensor_(resize4d)(output, T, nOutputPlane, outputHeight, outputWidth);
@@ -231,8 +231,8 @@ void THNN_(SpatialConvolutionMM_updateGradInput)(
   int freeWeight = 0;
 
   if (weight->nDimension == 4) {
-    long s1 = weight->size[0];
-    long s2 = weight->size[1] * weight->size[2] * weight->size[3];
+    int64_t s1 = weight->size[0];
+    int64_t s2 = weight->size[1] * weight->size[2] * weight->size[3];
     weight = THTensor_(newWithStorage2d)(weight->storage, weight->storageOffset,
 					 s1, -1, s2, -1);
     freeWeight = 1;
@@ -262,8 +262,8 @@ void THNN_(SpatialConvolutionMM_updateGradInput)(
   }
   else
   {
-    long T = input->size[0];
-    long t;
+    int64_t T = input->size[0];
+    int64_t t;
 
 #pragma omp parallel for private(t)
     for(t = 0; t < T; t++)
@@ -297,7 +297,7 @@ static void THNN_(SpatialConvolutionMM_accGradParameters_frame)(
           THTensor *finput,
           real scale)
 {
-  long i;
+  int64_t i;
   THTensor *gradOutput2d = THTensor_(newWithStorage2d)
     (gradOutput->storage, gradOutput->storageOffset,
      gradOutput->size[0], -1,
@@ -310,7 +310,7 @@ static void THNN_(SpatialConvolutionMM_accGradParameters_frame)(
   if (gradBias) {
     for(i = 0; i < gradBias->size[0]; i++)
     {
-      long k;
+      int64_t k;
       real sum = 0;
       real *data = gradOutput2d->storage->data + gradOutput2d->storageOffset + i*gradOutput2d->stride[0];
       for(k = 0; k < gradOutput2d->size[1]; k++)
@@ -341,8 +341,8 @@ void THNN_(SpatialConvolutionMM_accGradParameters)(
   int freeWeight = 0;
 
   if (gradWeight->nDimension == 4) {
-    long s1 = gradWeight->size[0];
-    long s2 = gradWeight->size[1] * gradWeight->size[2] * gradWeight->size[3];
+    int64_t s1 = gradWeight->size[0];
+    int64_t s2 = gradWeight->size[1] * gradWeight->size[2] * gradWeight->size[3];
     gradWeight = THTensor_(newWithStorage2d)(gradWeight->storage,
 					     gradWeight->storageOffset,
 					     s1, -1, s2, -1);
@@ -362,8 +362,8 @@ void THNN_(SpatialConvolutionMM_accGradParameters)(
   }
   else
   {
-    long T = input->size[0];
-    long t;
+    int64_t T = input->size[0];
+    int64_t t;
 
     for(t = 0; t < T; t++)
     {

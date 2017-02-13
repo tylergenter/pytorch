@@ -416,7 +416,7 @@
         - arg: THIndexTensor* min_indices
           output: True
         - THTensor* self
-        - long dim
+        - int dim
 ]]
 
 [[
@@ -442,7 +442,7 @@
         - arg: THIndexTensor* max_indices
           output: True
         - THTensor* self
-        - long dim
+        - int dim
 ]]
 
 [[
@@ -451,14 +451,14 @@
   with_stateless: True
   return: argument 0,1
   options:
-    - before_call: long __last_dim = THTensor_(nDimension)(LIBRARY_STATE ((THPTensor*)$arg2)->cdata)-1;
+    - before_call: int __last_dim = THTensor_(nDimension)(LIBRARY_STATE ((THPTensor*)$arg2)->cdata)-1;
       arguments:
         - arg: THTensor* values
           output: True
         - arg: THIndexTensor* indices
           output: True
         - THTensor* self
-        - long k
+        - int64_t k
         - CONSTANT __last_dim
     - arguments:
         - arg: THTensor* values
@@ -466,8 +466,8 @@
         - arg: THIndexTensor* indices
           output: True
         - THTensor* self
-        - long k
-        - long dim
+        - int64_t k
+        - int dim
 ]]
 
 [[
@@ -476,7 +476,7 @@
   with_stateless: True
   return: argument 0,1
   options:
-    - before_call: long __last_dim = THTensor_(nDimension)(LIBRARY_STATE ((THPTensor*)$arg2)->cdata)-1;
+    - before_call: int __last_dim = THTensor_(nDimension)(LIBRARY_STATE ((THPTensor*)$arg2)->cdata)-1;
       arguments:
         - arg: THTensor* values
           output: True
@@ -490,7 +490,7 @@
         - arg: THIndexTensor* indices
           output: True
         - THTensor* self
-        - long dim
+        - int dim
 ]]
 
 [[
@@ -499,7 +499,7 @@
   with_stateless: True
   return: argument 0,1
   options:
-    - before_call: long __last_dim = THTensor_(nDimension)(LIBRARY_STATE ((THPTensor*)$arg2)->cdata)-1;
+    - before_call: int __last_dim = THTensor_(nDimension)(LIBRARY_STATE ((THPTensor*)$arg2)->cdata)-1;
       arguments:
         - arg: THTensor* values
           output: True
@@ -513,7 +513,7 @@
         - arg: THIndexTensor* indices
           output: True
         - THTensor* self
-        - long dim
+        - int dim
 ]]
 
 [[
@@ -521,7 +521,7 @@
   with_stateless: True
   return: argument 0,1
   options:
-    - before_call: long __last_dim = THTensor_(nDimension)(LIBRARY_STATE ((THPTensor*)$arg2)->cdata)-1;
+    - before_call: int __last_dim = THTensor_(nDimension)(LIBRARY_STATE ((THPTensor*)$arg2)->cdata)-1;
       arguments:
         - arg: THTensor* values
           output: True
@@ -536,7 +536,7 @@
         - arg: THIndexTensor* indices
           output: True
         - THTensor* self
-        - long dim
+        - int dim
         - CONSTANT false
     - arguments:
         - arg: THTensor* values
@@ -544,7 +544,7 @@
         - arg: THIndexTensor* indices
           output: True
         - THTensor* self
-        - long dim
+        - int dim
         - bool descending
 ]]
 
@@ -554,14 +554,14 @@
   with_stateless: True
   return: argument 0,1
   options:
-    - before_call: long __last_dim = THTensor_(nDimension)(LIBRARY_STATE ((THPTensor*)$arg2)->cdata)-1;
+    - before_call: int __last_dim = THTensor_(nDimension)(LIBRARY_STATE ((THPTensor*)$arg2)->cdata)-1;
       arguments:
         - arg: THTensor* values
           output: True
         - arg: THIndexTensor* indices
           output: True
         - THTensor* self
-        - long k
+        - int64_t k
         - CONSTANT __last_dim
         - CONSTANT true
         - CONSTANT true
@@ -571,8 +571,8 @@
         - arg: THIndexTensor* indices
           output: True
         - THTensor* self
-        - long k
-        - long dim
+        - int64_t k
+        - int dim
         - arg: bool largest
           default: "true"
         - arg: bool sorted

@@ -734,8 +734,8 @@ TH_API void THNN_(SpatialConvolutionLocal_updateOutput)(
           int kW, int kH,
           int dW, int dH,
           int padW, int padH,
-          long inputWidth, long inputHeight,
-          long outputWidth, long outputHeight);
+          int64_t inputWidth, int64_t inputHeight,
+          int64_t outputWidth, int64_t outputHeight);
 TH_API void THNN_(SpatialConvolutionLocal_updateGradInput)(
           THNNState *state,
           THTensor *input,
@@ -747,8 +747,8 @@ TH_API void THNN_(SpatialConvolutionLocal_updateGradInput)(
           int kW, int kH,
           int dW, int dH,
           int padW, int padH,
-          long inputWidth, long inputHeight,
-          long outputWidth, long outputHeight);
+          int64_t inputWidth, int64_t inputHeight,
+          int64_t outputWidth, int64_t outputHeight);
 TH_API void THNN_(SpatialConvolutionLocal_accGradParameters)(
           THNNState *state,
           THTensor *input,
@@ -760,8 +760,8 @@ TH_API void THNN_(SpatialConvolutionLocal_accGradParameters)(
           int kW, int kH,
           int dW, int dH,
           int padW, int padH,
-          long inputWidth, long inputHeight,
-          long outputWidth, long outputHeight,
+          int64_t inputWidth, int64_t inputHeight,
+          int64_t outputWidth, int64_t outputHeight,
           real scale);
 
 TH_API void THNN_(SpatialAdaptiveMaxPooling_updateOutput)(

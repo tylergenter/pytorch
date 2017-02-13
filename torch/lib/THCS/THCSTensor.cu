@@ -5,7 +5,7 @@
 template <typename IndexType, typename Real>
 __global__ void THCSTensor_toDenseKernel(
     TensorInfo<Real, IndexType> other,
-    TensorInfo<long, IndexType> indices,
+    TensorInfo<int64_t, IndexType> indices,
     TensorInfo<Real, IndexType> values,
     const IndexType nnz) {
   for (IndexType linearId = blockIdx.x * blockDim.x + threadIdx.x;

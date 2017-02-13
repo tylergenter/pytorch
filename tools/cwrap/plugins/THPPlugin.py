@@ -34,7 +34,8 @@ class THPPlugin(CWrapPlugin):
         'THStride*': Template('__stride.get()'),
         'void*': Template('THPUtils_unpackLong($arg)'),
         'long': Template('THPUtils_unpackLong($arg)'),
-        'int': Template('THPUtils_unpackLong($arg)'),
+        'int64_t': Template('THPUtils_unpackLong($arg)'),
+        'int': Template('(int) THPUtils_unpackLong($arg)'),
         'bool': Template('($arg == Py_True ? true : false)'),
         'float': Template('THPFloatUtils_unpackReal($arg)'),
         'double': Template('THPDoubleUtils_unpackReal($arg)'),
@@ -69,6 +70,7 @@ class THPPlugin(CWrapPlugin):
         'THStride*': Template('THPUtils_tryUnpackLongs($arg, __stride)'),
         'void*': Template('THPUtils_checkLong($arg)'),
         'long': Template('THPUtils_checkLong($arg)'),
+        'int64_t': Template('THPUtils_checkLong($arg)'),
         'int': Template('THPUtils_checkLong($arg)'),
         'bool': Template('PyBool_Check($arg)'),
         'float': Template('THPFloatUtils_checkReal($arg)'),
@@ -85,7 +87,9 @@ class THPPlugin(CWrapPlugin):
         'THLongTensor*': Template('return THPLongTensor_New($result);'),
         'THLongStorage*': Template('return THPLongStorage_New($result);'),
         # TODO: make it smarter - it should return python long if result doesn't fit into an int
-        'long': Template('return PyInt_FromLong($result);'),
+        'long': Template('return PyLong_FromLongLong($result);'),
+        'int64_t': Template('return PyLong_FromLongLong($result);'),
+        'int': Template('return PyLong_FromInt($result);'),
         'accreal': Template('return THPUtils_(newAccreal)($result);'),
         'self': Template('Py_INCREF(self);\nreturn (PyObject*)self;'),
         'real': Template('return THPUtils_(newReal)($result);'),
@@ -102,8 +106,8 @@ static PyMethodDef TH${sparse}PTensor_$stateless(methods)[] = {
 PyObject * $name(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     HANDLE_TH_ERRORS
-    int __tuplecount = args ? PyTuple_Size(args) : 0;
-    int __dictcount = kwargs ? PyDict_Size(kwargs) : 0;
+    int __tuplecount = args ? (int) PyTuple_Size(args) : 0;
+    int __dictcount = kwargs ? (int) PyDict_Size(kwargs) : 0;
     int __argcount = __tuplecount + __dictcount;
     $variables
     $init
@@ -170,6 +174,8 @@ ${cpu}
         'THSize*': 'torch.Size',
         'THStride*': 'tuple',
         'long': 'int',
+        'int64_t': 'int',
+        'int': 'int',
         'real': '" RealStr "',
         'double': 'float',
         'accreal': '" RealStr "',
@@ -177,7 +183,7 @@ ${cpu}
     }
 
     OUT_INIT = """
-    __out = kwargs ? PyDict_GetItemString(kwargs, "out") : NULL;
+    ___out = kwargs ? PyDict_GetItemString(kwargs, "out") : NULL;
     """
 
     def __init__(self):
@@ -252,9 +258,9 @@ ${cpu}
             if not option['output_provided']:
                 return arg['name']
             if option['output_count'] == 1:
-                return '__out'
+                return '___out'
             else:
-                return 'PyTuple_GET_ITEM(__out, {})'.format(arg['output_idx'])
+                return 'PyTuple_GET_ITEM(___out, {})'.format(arg['output_idx'])
 
     def process_docstrings(self):
         for declaration in self.declarations:
@@ -331,7 +337,7 @@ ${cpu}
             if has_arg_type(declaration, 'THStride*'):
                 declaration['variables'] += ['THLongStoragePtr __stride;']
             if has_output_args(declaration):
-                declaration['variables'] += ['PyObject *__out;']
+                declaration['variables'] += ['PyObject *___out;']
                 self.generate_out_options(declaration)
             if has_long_args(declaration):
                 declaration['no_kwargs'] = True
@@ -422,15 +428,15 @@ ${cpu}
         if option.get('has_output'):
             indent = " " * 10
             if option['output_provided']:
-                checks = "__out != NULL &&\n" + indent
+                checks = "___out != NULL &&\n" + indent
                 if option['output_count'] > 1:
-                    checks += "PyTuple_Check(__out) &&\n" + indent
-                    length_check = "PyTuple_GET_SIZE(__out) == {} &&\n".format(
+                    checks += "PyTuple_Check(___out) &&\n" + indent
+                    length_check = "PyTuple_GET_SIZE(___out) == {} &&\n".format(
                         option['output_count'])
                     checks += length_check + indent
                 code = checks + code
             else:
-                code = "__out == NULL &&\n" + indent + code
+                code = "___out == NULL &&\n" + indent + code
 
         if any(arg.get('long_args', False) for arg in option['arguments']):
             code = code.replace('__argcount ==', '__argcount >=')

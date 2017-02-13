@@ -279,7 +279,7 @@ TH_API void THNN_(PReLU_updateOutput)(
                   THCTensor *input,
                   THCTensor *output,
                   THCTensor *weight,
-                  long nOutputPlane);
+                  int64_t nOutputPlane);
 
 TH_API void THNN_(PReLU_updateGradInput)(
                   THCState *state,
@@ -287,7 +287,7 @@ TH_API void THNN_(PReLU_updateGradInput)(
                   THCTensor *gradOutput,
                   THCTensor *gradInput,
                   THCTensor *weight,
-                  long nOutputPlane);
+                  int64_t nOutputPlane);
 
 TH_API void THNN_(PReLU_accGradParameters)(
                   THCState *state,
@@ -298,7 +298,7 @@ TH_API void THNN_(PReLU_accGradParameters)(
                   THCTensor *gradWeight,
                   THCTensor *gradWeightBuf,
                   THCTensor *gradWeightBuf2,
-                  long nOutputPlane,
+                  int64_t nOutputPlane,
                   real scale);
 
 TH_API void THNN_(SmoothL1Criterion_updateOutput)(
@@ -431,8 +431,8 @@ TH_API void THNN_(SpatialConvolutionLocal_updateOutput)(
                   int kW, int kH,
                   int dW, int dH,
                   int padW, int padH,
-                  long inputWidth, long inputHeight,
-                  long outputWidth, long outputHeight);
+                  int64_t inputWidth, int64_t inputHeight,
+                  int64_t outputWidth, int64_t outputHeight);
 
 TH_API void THNN_(SpatialConvolutionLocal_updateGradInput)(
                   THCState *state,
@@ -445,8 +445,8 @@ TH_API void THNN_(SpatialConvolutionLocal_updateGradInput)(
                   int kW, int kH,
                   int dW, int dH,
                   int padW, int padH,
-                  long inputWidth, long inputHeight,
-                  long outputWidth, long outputHeight);
+                  int64_t inputWidth, int64_t inputHeight,
+                  int64_t outputWidth, int64_t outputHeight);
 
 TH_API void THNN_(SpatialConvolutionLocal_accGradParameters)(
                   THCState *state,
@@ -459,8 +459,8 @@ TH_API void THNN_(SpatialConvolutionLocal_accGradParameters)(
                   int kW, int kH,
                   int dW, int dH,
                   int padW, int padH,
-                  long inputWidth, long inputHeight,
-                  long outputWidth, long outputHeight,
+                  int64_t inputWidth, int64_t inputHeight,
+                  int64_t outputWidth, int64_t outputHeight,
                   real scale);
 
 TH_API void THNN_(SpatialConvolutionMM_updateOutput)(

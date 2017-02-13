@@ -8,11 +8,11 @@
 /* A THGenerator contains all the state required for a single random number stream */
 typedef struct THGenerator {
   /* The initial seed. */
-  unsigned long the_initial_seed;
+  uint64_t the_initial_seed;
   int left;  /* = 1; */
   int seeded; /* = 0; */
-  unsigned long next;
-  unsigned long state[_MERSENNE_STATE_N]; /* the array for the state vector  */
+  uint64_t next;
+  uint64_t state[_MERSENNE_STATE_N]; /* the array for the state vector  */
   /********************************/
 
   /* For normal distribution */

@@ -16,8 +16,8 @@ static inline void THNN_(SpatialSubSampling_shapeCheck)(
   int dimw = 2;
   int dimh = 1;
 
-  long inputWidth;
-  long inputHeight;
+  int64_t inputWidth;
+  int64_t inputHeight;
 
   if (input->nDimension == 4) {
     dimw++;
@@ -48,16 +48,16 @@ void THNN_(SpatialSubSampling_updateOutput)(
 
   int dimw = 2;
   int dimh = 1;
-  long nbatch = 1;
+  int64_t nbatch = 1;
 
-  long inputWidth;
-  long inputHeight;
-  long outputWidth;
-  long outputHeight;
+  int64_t inputWidth;
+  int64_t inputHeight;
+  int64_t outputWidth;
+  int64_t outputHeight;
 
   int nInputPlane = THTensor_(size)(weight,0);
 
-  long k;
+  int64_t k;
 
   THNN_(SpatialSubSampling_shapeCheck)(input, NULL, weight, kW, kH);
 
@@ -84,17 +84,17 @@ void THNN_(SpatialSubSampling_updateOutput)(
 #pragma omp parallel for private(k)
   for(k = 0; k < nInputPlane; k++)
   {
-    long p;
+    int64_t p;
     for(p = 0; p < nbatch; p++)
     {
-      long xx, yy;
+      int64_t xx, yy;
       /* For all output pixels... */
       real *ptr_output = output_data + p*nInputPlane*outputWidth*outputHeight + k*outputWidth*outputHeight;
       /* Get the good mask for (k,i) (k out, i in) */
       real the_weight = weight_data[k];
       /* Initialize to the bias */
       real z = bias_data[k];
-      long i;
+      int64_t i;
       for(i = 0; i < outputWidth*outputHeight; i++)
         ptr_output[i] = z;
       
@@ -105,7 +105,7 @@ void THNN_(SpatialSubSampling_updateOutput)(
           /* Compute the mean of the input image... */
           real *ptr_input = input_data + p*nInputPlane*inputWidth*inputHeight + k*inputWidth*inputHeight + yy*dH*inputWidth+xx*dW;
           real sum = 0;
-          long kx, ky;
+          int64_t kx, ky;
 
           for(ky = 0; ky < kH; ky++)
           {
@@ -135,12 +135,12 @@ void THNN_(SpatialSubSampling_updateGradInput)(
 
   int dimw = 2;
   int dimh = 1;
-  long nbatch = 1;
+  int64_t nbatch = 1;
 
-  long inputWidth;
-  long inputHeight;
-  long outputWidth;
-  long outputHeight;
+  int64_t inputWidth;
+  int64_t inputHeight;
+  int64_t outputWidth;
+  int64_t outputHeight;
 
   int nInputPlane = THTensor_(size)(weight,0);
 
@@ -148,7 +148,7 @@ void THNN_(SpatialSubSampling_updateGradInput)(
   real *gradOutput_data;
   real *input_data, *gradInput_data;
 
-  long k;
+  int64_t k;
 
   if (input->nDimension == 4) {
     nbatch = input->size[0];
@@ -173,15 +173,15 @@ void THNN_(SpatialSubSampling_updateGradInput)(
 #pragma omp parallel for private(k)
   for(k = 0; k < nInputPlane; k++)
   {
-    long p;
+    int64_t p;
     for(p = 0; p < nbatch; p++)
     {
       real the_weight = weight_data[k];
       real *ptr_gradOutput = gradOutput_data + p*nInputPlane*outputHeight*outputWidth + k*outputWidth*outputHeight;
-      long xx, yy;
+      int64_t xx, yy;
 
       real* ptr_gi = gradInput_data + p*nInputPlane*inputWidth*inputHeight + k*inputWidth*inputHeight;
-      long i;
+      int64_t i;
       for(i=0; i<inputWidth*inputHeight; i++)
         ptr_gi[i] = 0.0;
 
@@ -191,7 +191,7 @@ void THNN_(SpatialSubSampling_updateGradInput)(
         {
           real *ptr_gradInput = gradInput_data + p*nInputPlane*inputWidth*inputHeight + k*inputWidth*inputHeight + yy*dH*inputWidth+xx*dW;
           real z = *ptr_gradOutput++ * the_weight;
-          long kx, ky;
+          int64_t kx, ky;
 
           for(ky = 0; ky < kH; ky++)
           {
@@ -218,14 +218,14 @@ void THNN_(SpatialSubSampling_accGradParameters)(
 {
   THNN_(SpatialSubSampling_shapeCheck)(input, gradOutput, gradWeight, kW, kH);
 
-  long nbatch = 1;
-  long dimw = 2;
-  long dimh = 1;
+  int64_t nbatch = 1;
+  int64_t dimw = 2;
+  int64_t dimh = 1;
 
-  long inputWidth;
-  long inputHeight;
-  long outputWidth;
-  long outputHeight;
+  int64_t inputWidth;
+  int64_t inputHeight;
+  int64_t outputWidth;
+  int64_t outputHeight;
 
   int nInputPlane = THTensor_(size)(gradWeight,0);
 
@@ -234,7 +234,7 @@ void THNN_(SpatialSubSampling_accGradParameters)(
   real *gradOutput_data;
   real *input_data;
 
-  long k;
+  int64_t k;
 
   if (input->nDimension == 4) {
     dimw++;
@@ -258,13 +258,13 @@ void THNN_(SpatialSubSampling_accGradParameters)(
 #pragma omp parallel for private(k)
   for(k = 0; k < nInputPlane; k++)
   {
-    long p;
+    int64_t p;
     for(p = 0; p < nbatch; p++)
     {
       real *ptr_gradOutput = gradOutput_data + p*nInputPlane*outputHeight*outputWidth + k*outputWidth*outputHeight;
       real sum;
-      long xx, yy;
-      long i;
+      int64_t xx, yy;
+      int64_t i;
 
       sum = 0;
       for(i = 0; i < outputWidth*outputHeight; i++)
@@ -278,7 +278,7 @@ void THNN_(SpatialSubSampling_accGradParameters)(
         {
           real *ptr_input = input_data + p*nInputPlane*inputWidth*inputHeight + k*inputWidth*inputHeight + yy*dH*inputWidth+xx*dW;
           real z = *ptr_gradOutput++;
-          long kx, ky;
+          int64_t kx, ky;
 
           for(ky = 0; ky < kH; ky++)
           {

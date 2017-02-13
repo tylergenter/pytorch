@@ -8,8 +8,8 @@ static inline void THNN_(SpatialConvolutionLocal_shapeCheck)(
                          THCTensor *weight, THCTensor *bias,
                          int kH, int kW, int dH,
                          int dW, int padH, int padW,
-                         long inputHeight, long inputWidth,
-                         long outputHeight, long outputWidth) {
+                         int64_t inputHeight, int64_t inputWidth,
+                         int64_t outputHeight, int64_t outputWidth) {
 
   THArgCheck(kW > 0 && kH > 0, 9,
              "kernel size should be greater than zero, but got kH: %d kW: %d", kH, kW);
@@ -30,8 +30,8 @@ static inline void THNN_(SpatialConvolutionLocal_shapeCheck)(
   THCUNN_argCheck(state, ndim == 3 || ndim == 4, 2, input,
                   "3D or 4D input tensor expected but got: %s");
 
-  long nInputPlane = weight->size[2] / (kH * kW);
-  long nOutputPlane = weight->size[1];
+  int64_t nInputPlane = weight->size[2] / (kH * kW);
+  int64_t nOutputPlane = weight->size[1];
 
   if (bias != NULL) {
    THCUNN_check_dim_size(state, bias, 3, 0, nOutputPlane);
@@ -56,9 +56,9 @@ static int THNN_(view_weight_local)(
   THArgCheck(weight->nDimension == 3 || weight->nDimension == 6, 4,
             "weight tensor should be 3D or 6D - got %dD", weight->nDimension);
   if (weight->nDimension == 6) {
-    long s1 = weight->size[0] * weight->size[1];
-    long s2 = weight->size[2];
-    long s3 = weight->size[3] * weight->size[4] * weight->size[5];
+    int64_t s1 = weight->size[0] * weight->size[1];
+    int64_t s2 = weight->size[2];
+    int64_t s3 = weight->size[3] * weight->size[4] * weight->size[5];
     *_weight = THCTensor_(newWithStorage3d)(state,
                           weight->storage,
                           weight->storageOffset,
@@ -79,8 +79,8 @@ void THNN_(SpatialConvolutionLocal_updateOutput)(
            int kW, int kH,
            int dW, int dH,
            int padW, int padH,
-           long inputWidth, long inputHeight,
-           long outputWidth, long outputHeight)
+           int64_t inputWidth, int64_t inputHeight,
+           int64_t outputWidth, int64_t outputHeight)
 {
   THCUNN_assertSameGPU(state, 5, input, output, weight,
                        bias, finput);
@@ -93,8 +93,8 @@ void THNN_(SpatialConvolutionLocal_updateOutput)(
 
   input = THCTensor_(newContiguous)(state, input);
 
-  long nInputPlane = THCTensor_(size)(state,weight,2)/(kW*kH);
-  long nOutputPlane = THCTensor_(size)(state,weight,1);
+  int64_t nInputPlane = THCTensor_(size)(state,weight,2)/(kW*kH);
+  int64_t nOutputPlane = THCTensor_(size)(state,weight,1);
 
   int batch = 1;
   if (input->nDimension == 3) {
@@ -104,7 +104,7 @@ void THNN_(SpatialConvolutionLocal_updateOutput)(
   }
 
   // Batch size + input planes
-  long batchSize = input->size[0];
+  int64_t batchSize = input->size[0];
 
   // Resize output
   THCTensor_(resize4d)(state, output, batchSize, nOutputPlane, outputHeight, outputWidth);
@@ -190,8 +190,8 @@ void THNN_(SpatialConvolutionLocal_updateGradInput)(
            int kW, int kH,
            int dW, int dH,
            int padW, int padH,
-           long inputWidth, long inputHeight,
-           long outputWidth, long outputHeight)
+           int64_t inputWidth, int64_t inputHeight,
+           int64_t outputWidth, int64_t outputHeight)
 {
   THCUNN_assertSameGPU(state, 5, input, gradOutput, weight,
                        fgradInput, gradInput);
@@ -205,8 +205,8 @@ void THNN_(SpatialConvolutionLocal_updateGradInput)(
   input = THCTensor_(newContiguous)(state, input);
   gradOutput = THCTensor_(newContiguous)(state, gradOutput);
 
-  long nInputPlane = THCTensor_(size)(state,weight,2)/(kW*kH);
-  long nOutputPlane = THCTensor_(size)(state,weight,1);
+  int64_t nInputPlane = THCTensor_(size)(state,weight,2)/(kW*kH);
+  int64_t nOutputPlane = THCTensor_(size)(state,weight,1);
 
   int batch = 1;
   if (input->nDimension == 3) {
@@ -217,7 +217,7 @@ void THNN_(SpatialConvolutionLocal_updateGradInput)(
   }
 
   // Batch size + input planes
-  long batchSize = input->size[0];
+  int64_t batchSize = input->size[0];
 
   // Resize output
   THCTensor_(resize4d)(state, gradInput, batchSize, nInputPlane, inputHeight, inputWidth);
@@ -307,8 +307,8 @@ void THNN_(SpatialConvolutionLocal_accGradParameters)(
            int kW, int kH,
            int dW, int dH,
            int padW, int padH,
-           long inputWidth, long inputHeight,
-           long outputWidth, long outputHeight,
+           int64_t inputWidth, int64_t inputHeight,
+           int64_t outputWidth, int64_t outputHeight,
            real scale)
 {
   THCUNN_assertSameGPU(state, 5, input, gradOutput, gradWeight,
@@ -323,8 +323,8 @@ void THNN_(SpatialConvolutionLocal_accGradParameters)(
   input = THCTensor_(newContiguous)(state, input);
   gradOutput = THCTensor_(newContiguous)(state, gradOutput);
 
-  long nInputPlane = THCTensor_(size)(state,gradWeight,2)/(kW*kH);
-  long nOutputPlane = THCTensor_(size)(state,gradWeight,1);
+  int64_t nInputPlane = THCTensor_(size)(state,gradWeight,2)/(kW*kH);
+  int64_t nOutputPlane = THCTensor_(size)(state,gradWeight,1);
 
   int batch = 1;
   if (input->nDimension == 3) {
@@ -335,7 +335,7 @@ void THNN_(SpatialConvolutionLocal_accGradParameters)(
   }
 
   // Batch size + input planes
-  long batchSize = input->size[0];
+  int64_t batchSize = input->size[0];
 
   // Helpers
   THCTensor *input_n = THCTensor_(new)(state);

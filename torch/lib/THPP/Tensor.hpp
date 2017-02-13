@@ -15,7 +15,7 @@
 namespace thpp {
 
 struct Tensor {
-  using long_range = std::vector<long>;
+  using long_range = std::vector<int64_t>;
 
   Tensor() {};
   Tensor(const Tensor& other) = delete;
@@ -28,11 +28,11 @@ struct Tensor {
   virtual int nDim() const = 0;
   virtual long_range sizes() const = 0;
   virtual long_range strides() const = 0;
-  virtual const long* rawSizes() const = 0;
-  virtual const long* rawStrides() const = 0;
+  virtual const int64_t* rawSizes() const = 0;
+  virtual const int64_t* rawStrides() const = 0;
   virtual std::size_t storageOffset() const = 0;
   virtual std::size_t elementSize() const = 0;
-  virtual long long numel() const = 0;
+  virtual int64_t numel() const = 0;
   virtual bool isContiguous() const = 0;
   virtual void* data() = 0;
   virtual const void* data() const = 0;
@@ -41,8 +41,8 @@ struct Tensor {
   virtual Tensor& retain() = 0;
   virtual Tensor& free() = 0;
 
-  virtual Tensor& resize(const std::initializer_list<long>& new_size) = 0;
-  virtual Tensor& resize(const std::vector<long>& new_size) = 0;
+  virtual Tensor& resize(const std::initializer_list<int64_t>& new_size) = 0;
+  virtual Tensor& resize(const std::vector<int64_t>& new_size) = 0;
   virtual Tensor& resize(THLongStorage *size,
                          THLongStorage *stride) = 0;
   virtual Tensor& resizeAs(const Tensor& src) = 0;
@@ -53,11 +53,11 @@ struct Tensor {
                              THLongStorage *stride) = 0;
   virtual Tensor& narrow(const Tensor& src,
                          int dimension,
-                         long firstIndex,
-                         long size) = 0;
-  virtual Tensor& select(const Tensor& src, int dimension, long sliceIndex) = 0;
+                         int64_t firstIndex,
+                         int64_t size) = 0;
+  virtual Tensor& select(const Tensor& src, int dimension, int64_t sliceIndex) = 0;
   virtual Tensor& transpose(const Tensor& src, int dimension1, int dimension2) = 0;
-  virtual Tensor& unfold(const Tensor& src, int dimension, long size, long step) = 0;
+  virtual Tensor& unfold(const Tensor& src, int dimension, int64_t size, int64_t step) = 0;
 
   virtual Tensor& gather(const Tensor& src, int dimension, const Tensor& index) = 0;
   virtual Tensor& scatter(int dimension, const Tensor& index, const Tensor& src) = 0;
@@ -71,7 +71,7 @@ struct Tensor {
   virtual Tensor& cremainder(const Tensor& src1, const Tensor& src2) = 0;
   virtual Tensor& max(const Tensor& indices_, const Tensor& src, int dimension) = 0;
   virtual Tensor& min(const Tensor& indices_, const Tensor& src, int dimension) = 0;
-  virtual Tensor& kthvalue(const Tensor& indices_, const Tensor& src, long k, int dimension) = 0;
+  virtual Tensor& kthvalue(const Tensor& indices_, const Tensor& src, int64_t k, int dimension) = 0;
   virtual Tensor& mode(const Tensor& indices_, const Tensor& src, int dimension) = 0;
   virtual Tensor& median(const Tensor& indices_, const Tensor& src, int dimension) = 0;
   virtual Tensor& sum(const Tensor& src, int dimension) = 0;
@@ -125,6 +125,6 @@ struct TensorScalarInterface : public Tensor {
 };
 
 using FloatTensor = TensorScalarInterface<double>;
-using IntTensor = TensorScalarInterface<long long>;
+using IntTensor = TensorScalarInterface<int64_t>;
 
 } // namespace thpp

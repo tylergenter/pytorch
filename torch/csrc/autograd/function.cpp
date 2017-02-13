@@ -214,7 +214,7 @@ static void _wrap_outputs(THPFunction *self, t2var_type &t2var,
 
     torch::THPVoidTensor *output_obj = (torch::THPVoidTensor*)output_var->data;
     torch::THVoidTensor *output_tensor = output_obj->cdata;
-    long ndim = output_tensor->nDimension;
+    int64_t ndim = output_tensor->nDimension;
     int device_id = -1;
     THPObjectPtr is_cuda = PyObject_GetAttrString(output_var->data, "is_cuda");
     if (is_cuda.get() == Py_True) {
@@ -222,12 +222,12 @@ static void _wrap_outputs(THPFunction *self, t2var_type &t2var,
           "get_device", "");
       THPFunction_assert(THPUtils_checkLong(device_id_obj), "get_device "
           "should return an int, but got %s", THPUtils_typename(device_id_obj));
-      device_id = THPUtils_unpackLong(device_id_obj);
+      device_id = (int) THPUtils_unpackLong(device_id_obj);
     }
     output_info[i] = std::make_tuple(
       (PyObject*)Py_TYPE(output_var->data),
       device_id,
-      std::vector<long>(output_tensor->size, output_tensor->size + ndim)
+      std::vector<int64_t>(output_tensor->size, output_tensor->size + ndim)
     );
     t2var[output] = output_var;
     output_var->output_nr = i;
@@ -360,7 +360,7 @@ static bool _ensure_tuple(THPObjectPtr& obj)
 PyObject *THPFunction_do_forward(THPFunction *self, PyObject *inputs)
 {
   try {
-    Py_ssize_t num_inputs = inputs ? PyTuple_GET_SIZE(inputs) : 0;
+    int num_inputs = inputs ? (int) PyTuple_GET_SIZE(inputs) : 0;
 
     // Unpack inputs and check if they require gradients or are volatile
     THPObjectPtr unpacked_inputs = PyTuple_New(num_inputs);
@@ -393,7 +393,7 @@ PyObject *THPFunction_do_forward(THPFunction *self, PyObject *inputs)
     if (!raw_output) return NULL;
     // Wrap output in a tuple, if it's not one already
     bool unpack_output = _ensure_tuple(raw_output);
-    int num_outputs = PyTuple_GET_SIZE(raw_output.get());
+    int num_outputs = (int) PyTuple_GET_SIZE(raw_output.get());
 
 
     THPObjectPtr outputs = PyTuple_New(num_outputs);
@@ -714,7 +714,7 @@ static void _prepare_grad_output(THPFunction *self, THPObjectPtr& raw_grad_outpu
 #ifdef WITH_CUDA
   THCPAutoGPU gpu_guard(-1);
 #endif
-  int num_grad_output = PyTuple_GET_SIZE(raw_grad_output.get());
+  int num_grad_output = (int) PyTuple_GET_SIZE(raw_grad_output.get());
   // First, check if any of grad_outputs is None. If not, there's nothing to do
   bool has_none = false;
   for (int i = 0; i < num_grad_output; i++) {
@@ -739,7 +739,7 @@ static void _prepare_grad_output(THPFunction *self, THPObjectPtr& raw_grad_outpu
 #ifdef WITH_CUDA
       gpu_guard.setDevice(std::get<1>(info));
 #endif
-      std::vector<long> &sizes = std::get<2>(info);
+      std::vector<int64_t> &sizes = std::get<2>(info);
       THPObjectPtr grad_size = THPSize_New(sizes.size(), sizes.data());
       THPObjectPtr new_grad = PyObject_CallFunctionObjArgs(tensor_cls, grad_size.get(), NULL);
       if (!new_grad) throw python_error();
@@ -756,7 +756,7 @@ static void _prepare_grad_output(THPFunction *self, THPObjectPtr& raw_grad_outpu
 
 static void _trim_grad_input(THPFunction *self, THPObjectPtr& grad_input)
 {
-  int num_grads = PyTuple_GET_SIZE(grad_input.get());
+  int num_grads = (int) PyTuple_GET_SIZE(grad_input.get());
   int num_prev_fns = self->num_inputs;
   if (num_grads > num_prev_fns) {
     // Check that all extra grads are none
@@ -806,7 +806,7 @@ PyObject * THPFunction_do_backward(THPFunction *self, PyObject *args)
     // We allow functions to return more gradients, than there were outputs,
     // if and only if the additional ones are all None
     _trim_grad_input(self, grad_input);
-    int num_grads = PyTuple_GET_SIZE(grad_input.get());
+    int num_grads = (int) PyTuple_GET_SIZE(grad_input.get());
     int num_prev_fns = self->num_inputs;
     THPUtils_assert(num_grads == num_prev_fns, "%s returned an invalid number of "
         "gradient tensors (expected %d, but got %d)", THPUtils_typename(self),
@@ -858,7 +858,7 @@ PyObject *THPFunction_saved_tensors(THPFunction *self, void *_unused)
   if (!self->saved_variables)
     return PyTuple_New(0);
 
-  int num_saved = self->saved_variables->size();
+  int num_saved = (int) self->saved_variables->size();
   THPObjectPtr saved_tensors = PyTuple_New(num_saved);
   if (!saved_tensors)
     return NULL;

@@ -7,7 +7,7 @@ void THNN_(PReLU_updateOutput)(
            THCTensor *input,
            THCTensor *output,
            THCTensor *weight,
-           long nOutputPlane)
+           int64_t nOutputPlane)
 {
   THCTensor_(resizeAs)(state, output, input);
 
@@ -46,7 +46,7 @@ void THNN_(PReLU_updateGradInput)(
            THCTensor *gradOutput,
            THCTensor *gradInput,
            THCTensor *weight,
-           long nOutputPlane)
+           int64_t nOutputPlane)
 {
   THCUNN_check_nElement(state, input, gradOutput);
   THCTensor_(resizeAs)(state, gradInput, input);
@@ -91,7 +91,7 @@ void THNN_(PReLU_accGradParameters)(
            THCTensor *gradWeight,
            THCTensor *gradWeightBuf,
            THCTensor *gradWeightBuf2,
-           long nOutputPlane,
+           int64_t nOutputPlane,
            real scale)
 {
   THCUNN_check_nElement(state, input, gradOutput);

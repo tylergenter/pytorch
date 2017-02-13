@@ -118,7 +118,7 @@ THCTensor_(remainder)(THCState *state, THCTensor *self_, THCTensor *src_, real v
   THCudaCheck(cudaGetLastError());
 }
 
-void THCTensor_(tril)(THCState *state, THCTensor *self_, THCTensor *src_, long k)
+void THCTensor_(tril)(THCState *state, THCTensor *self_, THCTensor *src_, int64_t k)
 {
   THAssert(THCTensor_(checkGPU)(state, 2, self_, src_));
   THArgCheck(src_->nDimension == 2, 1, "expected a matrix");
@@ -127,8 +127,8 @@ void THCTensor_(tril)(THCState *state, THCTensor *self_, THCTensor *src_, long k
   if (self_ == src_)
     src = THCTensor_(newContiguous)(state, src_);
 
-  long stride0 = src->stride[0];
-  long stride1 = src->stride[1];
+  int64_t stride0 = src->stride[0];
+  int64_t stride1 = src->stride[1];
   real *start = THCTensor_(data)(state, src) + src->storageOffset;
 
   TensorTriOp<real, 0> op(start, stride0, stride1, k);
@@ -151,7 +151,7 @@ void THCTensor_(tril)(THCState *state, THCTensor *self_, THCTensor *src_, long k
   THCudaCheck(cudaGetLastError());
 }
 
-void THCTensor_(triu)(THCState *state, THCTensor *self_, THCTensor *src_, long k)
+void THCTensor_(triu)(THCState *state, THCTensor *self_, THCTensor *src_, int64_t k)
 {
   THAssert(THCTensor_(checkGPU)(state, 2, self_, src_));
   THArgCheck(src_->nDimension == 2, 1, "expected a matrix");
@@ -160,8 +160,8 @@ void THCTensor_(triu)(THCState *state, THCTensor *self_, THCTensor *src_, long k
   if (self_ == src_)
     src = THCTensor_(newContiguous)(state, src_);
 
-  long stride0 = src->stride[0];
-  long stride1 = src->stride[1];
+  int64_t stride0 = src->stride[0];
+  int64_t stride1 = src->stride[1];
   real *start = THCTensor_(data)(state, src) + src->storageOffset;
 
   TensorTriOp<real, 1> op(start, stride0, stride1, k);
