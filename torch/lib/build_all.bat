@@ -16,7 +16,7 @@ set C_FLAGS=%BASIC_C_FLAGS% /D_WIN32 /Z7 /EHa
 set LINK_FLAGS=/DEBUG:FULL
 
 mkdir tmp_install
-call:build TH
+::call:build TH
 ::call:build THS
 ::call:build THNN
 
@@ -28,7 +28,7 @@ IF "%1"=="--with-cuda" (
     ::call:build_nccl
 )
 
-::call:build THPP
+call:build THPP
 ::call:build libshm_windows
 
 copy /Y tmp_install\lib\* .
