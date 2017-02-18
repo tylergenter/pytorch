@@ -2,8 +2,9 @@
 #define THCP_AUTOGPU_INC
 
 #include <Python.h>
+#include "THP.h"
 
-class THCPAutoGPU {
+class THP_CLASS THCPAutoGPU {
 public:
   THCPAutoGPU(int device_id=-1);
   THCPAutoGPU(PyObject *args, PyObject *self=NULL);

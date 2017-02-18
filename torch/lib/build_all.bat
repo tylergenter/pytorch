@@ -20,7 +20,7 @@ mkdir tmp_install
 ::call:build THS
 ::call:build THNN
 
-::call:build THCUNN
+call:build THC
 IF "%1"=="--with-cuda" (
     ::call:build THC
     ::call:build THCS
@@ -28,7 +28,7 @@ IF "%1"=="--with-cuda" (
     ::call:build_nccl
 )
 
-call:build THPP
+::call:build THPP
 ::call:build libshm_windows
 
 copy /Y tmp_install\lib\* .

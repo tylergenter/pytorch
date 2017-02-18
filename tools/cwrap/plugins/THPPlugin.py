@@ -89,7 +89,7 @@ class THPPlugin(CWrapPlugin):
         # TODO: make it smarter - it should return python long if result doesn't fit into an int
         'long': Template('return PyLong_FromLongLong($result);'),
         'int64_t': Template('return PyLong_FromLongLong($result);'),
-        'int': Template('return PyLong_FromInt($result);'),
+        'int': Template('return PyLong_FromLong($result);'),
         'accreal': Template('return THPUtils_(newAccreal)($result);'),
         'self': Template('Py_INCREF(self);\nreturn (PyObject*)self;'),
         'real': Template('return THPUtils_(newReal)($result);'),

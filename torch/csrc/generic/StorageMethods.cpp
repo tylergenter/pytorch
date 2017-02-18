@@ -33,7 +33,7 @@ static PyObject * THPStorage_(isPinned)(THPStorage *self)
     cudaGetLastError();
     Py_RETURN_FALSE;
   }
-  return PyBool_FromLongLong(attr.memoryType == cudaMemoryTypeHost);
+  return PyBool_FromLong(attr.memoryType == cudaMemoryTypeHost);
 #else
   Py_RETURN_FALSE;
 #endif

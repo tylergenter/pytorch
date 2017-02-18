@@ -269,16 +269,22 @@ if WITH_DISTRIBUTED:
     main_link_args += [THD_LIB]
 
 if WITH_CUDA:
-    cuda_lib_dirs = ['lib64', 'lib']
+
+    if platform.system() == 'Windows':
+        cuda_lib_path = os.path.join(CUDA_HOME, 'lib/x64/')
+        extra_link_args.append(cuda_lib_path + 'cuda.lib')
+        extra_link_args.append(cuda_lib_path + 'cudart.lib')
+    else:
+        cuda_lib_dirs = ['lib64', 'lib']
+        for lib_dir in cuda_lib_dirs:
+            cuda_lib_path = os.path.join(CUDA_HOME, lib_dir)
+            if os.path.exists(cuda_lib_path):
+                break
+        extra_link_args.append('-L' + cuda_lib_path)
+        extra_link_args.append('-Wl,-rpath,' + cuda_lib_path)
     cuda_include_path = os.path.join(CUDA_HOME, 'include')
-    for lib_dir in cuda_lib_dirs:
-        cuda_lib_path = os.path.join(CUDA_HOME, lib_dir)
-        if os.path.exists(cuda_lib_path):
-            break
     include_dirs.append(cuda_include_path)
     include_dirs.append(tmp_install_path + "/include/THCUNN")
-    extra_link_args.append('-L' + cuda_lib_path)
-    extra_link_args.append('-Wl,-rpath,' + cuda_lib_path)
     extra_compile_args += ['-DWITH_CUDA']
     extra_compile_args += ['-DCUDA_LIB_PATH=' + cuda_lib_path]
     main_link_args += [THC_LIB, THCS_LIB, THCUNN_LIB]
@@ -295,6 +301,7 @@ if WITH_CUDA:
 if WITH_CUDNN:
     main_libraries += ['cudnn']
     include_dirs.append(CUDNN_INCLUDE_DIR)
+    
     extra_link_args.append('-L' + CUDNN_LIB_DIR)
     main_sources += [
         "torch/csrc/cudnn/BatchNorm.cpp",
@@ -366,6 +373,7 @@ if WITH_CUDA:
                            TH_LIB,
                            THC_LIB,
                            THCUNN_LIB,
+                           'build/temp.win-amd64-3.5/Release/torch/csrc/_C.cp35-win_amd64.lib',
                            make_relative_rpath('../lib'),
                        ]
                        )
