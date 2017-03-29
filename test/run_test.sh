@@ -12,11 +12,6 @@ while [[ "$#" -gt 0 ]]; do
     esac
 done
 
-if [[ $COVERAGE -eq 1 ]]; then
-    coverage erase
-    PYCMD="coverage run --parallel-mode --source torch "
-    echo "coverage flag found. Setting python command to: \"$PYCMD\""
-fi
 
 pushd "$(dirname "$0")"
 

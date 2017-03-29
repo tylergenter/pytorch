@@ -203,7 +203,7 @@ void $name($args)
                 type='type', tensor_args=', '.join(real_args)))
         if len(long_args) > 1:
             types_checks.append(self.INPUT_TYPE_CHECK.substitute(
-                type='thpp::Type::LONG', tensor_args=', '.join(long_args)))
+                type='thpp::Type::LONG_LONG', tensor_args=', '.join(long_args)))
 
         return Template(self.WRAPPER_TEMPLATE.safe_substitute(
             input=args[0]['name'],

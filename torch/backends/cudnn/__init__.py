@@ -18,6 +18,8 @@ if sys.platform.startswith('linux'):
                 'libcudnn.so.5.0.5', 'libcudnn.so.5.1.10']
 elif sys.platform == 'darwin':
     libnames = ['libcudnn.6.dylib', 'libcudnn.5.dylib']
+elif sys.platform == 'win32':
+    libnames = ['cudnn64_5.dll']
 else:
     libnames = []
 

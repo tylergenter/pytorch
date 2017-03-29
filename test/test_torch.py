@@ -2503,6 +2503,8 @@ class TestTorch(TestCase):
         for use_name in (False, True):
             with tempfile.NamedTemporaryFile(delete=True) as f:
                 handle = f if not use_name else f.name
+                if sys.platform == 'win32' and use_name:
+                    handle = tempfile.mktemp()
                 torch.save(b, handle)
                 f.seek(0)
                 c = torch.load(handle)
@@ -2840,7 +2842,12 @@ class TestTorch(TestCase):
         self.assertEqual(x[0], 1)
         self.assertEqual(x[1], 2)
         self.assertEqual(x[2], 3)
+        self.assertEqual(len(x), 3)
         self.assertRaises(TypeError, lambda: torch.Size(torch.ones(3)))
+
+        self.assertIsInstance(x * 2, torch.Size)
+        self.assertIsInstance(x[:-1], torch.Size)
+        self.assertIsInstance(x + x, torch.Size)
 
 
 if __name__ == '__main__':

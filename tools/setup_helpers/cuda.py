@@ -9,7 +9,8 @@ if check_env_flag('NO_CUDA'):
     CUDA_HOME = None
 else:
     if platform.system() == 'Windows':
-        CUDA_HOME = os.getenv('CUDA_PATH', 'C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v8.0')
+        CUDA_HOME = os.getenv('CUDA_PATH', 'C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v8.0').replace('\\','/')
+
     else:
         CUDA_HOME = os.getenv('CUDA_HOME', '/usr/local/cuda')
     if not os.path.exists(CUDA_HOME):

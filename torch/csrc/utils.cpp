@@ -560,8 +560,8 @@ bool THPUtils_parseSlice(PyObject *slice, Py_ssize_t len, Py_ssize_t *ostart, Py
     return false;
   }
   if (step != 1) {
-    THPUtils_setError("Trying to slice with a step of %ld, but only a step of "
-        "1 is supported", (long)step);
+    THPUtils_setError("Trying to slice with a step of %lld, but only a step of "
+        "1 is supported", (int64_t)step);
     return false;
   }
   *ostart = start;
@@ -577,11 +577,4 @@ void THPPointer<THPGenerator>::free() {
     Py_DECREF(ptr);
 }
 
-template<>
-void THPPointer<PyObject>::free() {
-  if (ptr)
-    Py_DECREF(ptr);
-}
-
 template class THPPointer<THPGenerator>;
-template class THPPointer<PyObject>;

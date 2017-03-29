@@ -396,6 +396,7 @@ attr_map('SpatialAdaptiveMaxPooling', {'H': 'h', 'W': 'w'})
 decrement('Index', 'dimension')
 decrement('SelectTable', 'index')
 decrement('SplitTable', 'dimension')
+decrement_positive('JoinTable', 'dimension')
 decrement('Parallel', 'inputDimension', 'outputDimension')
 decrement('Concat', 'dimension')
 decrement('DepthConcat', 'dimension')
@@ -467,7 +468,7 @@ class T7Reader:
 
     def read_long(self):
         if self.long_size is None:
-            return self._read('l')
+            return self._read('q')
         elif self.long_size is 8:
             return self._read('q')
         else:
@@ -480,7 +481,7 @@ class T7Reader:
                 lst.append(self.read_long())
             return lst
         else:
-            arr = array('l')
+            arr = array('q')
             arr.fromfile(self.f, n)
             return arr.tolist()
 

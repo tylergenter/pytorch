@@ -1,6 +1,8 @@
 from setuptools import setup, Extension, distutils, Command, find_packages
 import setuptools.command.build_ext
 import setuptools.command.install
+import setuptools.command.develop
+import setuptools.command.build_py
 import distutils.unixccompiler
 import distutils.command.build
 import distutils.command.clean
@@ -36,7 +38,7 @@ def parallelCCompile(self, sources, output_dir=None, macros=None,
 
     def _single_compile(obj):
         src, ext = build[obj]
-        self._compile(obj, src, ext, cc_args, extra_postargs, pp_opts)
+        self._compile(obj, src, ext, cc_args, edxtra_postargs, pp_opts)
     num_jobs = multiprocessing.cpu_count()
     multiprocessing.pool.ThreadPool(num_jobs).map(_single_compile, objects)
 
@@ -51,8 +53,8 @@ def patched_link(self, *args, **kwargs):
     return result
 
 
-#distutils.ccompiler.CCompiler.compile = parallelCCompile
-#distutils.unixccompiler.UnixCCompiler.link = patched_link
+distutils.ccompiler.CCompiler.compile = parallelCCompile
+distutils.unixccompiler.UnixCCompiler.link = patched_link
 
 ################################################################################
 # Custom build commands
@@ -70,13 +72,16 @@ class build_deps(Command):
 
     def run(self):
         from tools.nnwrap import generate_wrappers as generate_nn_wrappers
-        build_all_cmd = ['bash', 'torch/lib/build_all.sh']
+        if platform.system() == 'Windows':
+            build_all_cmd = ['torch\\lib\\build_all.bat']
+        else:
+            build_all_cmd = ['bash', 'torch/lib/build_all.sh']
         if WITH_CUDA:
             build_all_cmd += ['--with-cuda']
         if WITH_DISTRIBUTED:
             build_all_cmd += ['--with-distributed']
-        # if subprocess.call(build_all_cmd) != 0:
-            # sys.exit(1)
+        if subprocess.call(build_all_cmd) != 0:
+            sys.exit(1)
         generate_nn_wrappers()
 
 
@@ -92,6 +97,28 @@ class build_module(Command):
     def run(self):
         self.run_command('build_py')
         self.run_command('build_ext')
+
+
+class build_py(setuptools.command.build_py.build_py):
+
+    def run(self):
+        self.create_version_file()
+        setuptools.command.build_py.build_py.run(self)
+
+    @staticmethod
+    def create_version_file():
+        global version, cwd
+        print('-- Building version ' + version)
+        version_path = os.path.join(cwd, 'torch', 'version.py')
+        with open(version_path, 'w') as f:
+            f.write("__version__ = '{}'\n".format(version))
+
+
+class develop(setuptools.command.develop.develop):
+
+    def run(self):
+        build_py.create_version_file()
+        setuptools.command.develop.develop.run(self)
 
 
 class build_ext(setuptools.command.build_ext.build_ext):
@@ -170,7 +197,7 @@ class clean(distutils.command.clean.clean):
 include_dirs = []
 extra_link_args = []
 if platform.system() == 'Windows':
-  extra_compile_args = ['/Z7', '/EHa']
+  extra_compile_args = ['/Z7', '/EHa', '/DNOMINMAX']
 else:
   extra_compile_args = ['-std=c++11', '-Wno-write-strings']
 if os.getenv('PYTORCH_BINARY_BUILD') and platform.system() == 'Linux':
@@ -223,6 +250,7 @@ if platform.system() == 'Windows':
     THNN_LIB = os.path.join(lib_path, 'THNN.lib')
     THCUNN_LIB = os.path.join(lib_path, 'THCUNN.lib')
     THPP_LIB = os.path.join(lib_path, 'THPP.lib')
+    _C_LIB = 'build/temp.win-amd64-' + str(sys.version_info[0]) + '.' + str(sys.version_info[1]) + '/Release/torch/csrc/_C.cp' + str(sys.version_info[0]) + str(sys.version_info[1]) + '-win_amd64.lib'
 
 main_compile_args = ['-D_THP_CORE']
 main_libraries = ['shm']
@@ -235,14 +263,23 @@ main_sources = [
     "torch/csrc/Exceptions.cpp",
     "torch/csrc/Tensor.cpp",
     "torch/csrc/Storage.cpp",
+    "torch/csrc/DynamicTypes.cpp",
     "torch/csrc/byte_order.cpp",
     "torch/csrc/utils.cpp",
+    "torch/csrc/utils/object_ptr.cpp",
     "torch/csrc/allocators.cpp",
     "torch/csrc/serialization.cpp",
     "torch/csrc/autograd/init.cpp",
-    "torch/csrc/autograd/variable.cpp",
-    "torch/csrc/autograd/function.cpp",
     "torch/csrc/autograd/engine.cpp",
+    "torch/csrc/autograd/function.cpp",
+    "torch/csrc/autograd/variable.cpp",
+    "torch/csrc/autograd/grad_buffer.cpp",
+    "torch/csrc/autograd/python_function.cpp",
+    "torch/csrc/autograd/python_cpp_function.cpp",
+    "torch/csrc/autograd/python_variable.cpp",
+    "torch/csrc/autograd/python_engine.cpp",
+    "torch/csrc/autograd/functions/batch_normalization.cpp",
+    "torch/csrc/autograd/functions/init.cpp",
     "torch/csrc/nn/THNN_generic.cpp",
 ]
 
@@ -271,9 +308,8 @@ if WITH_DISTRIBUTED:
 if WITH_CUDA:
 
     if platform.system() == 'Windows':
-        cuda_lib_path = os.path.join(CUDA_HOME, 'lib/x64/')
-        extra_link_args.append(cuda_lib_path + 'cuda.lib')
-        extra_link_args.append(cuda_lib_path + 'cudart.lib')
+        cuda_lib_path = CUDA_HOME + '/bin/'
+        extra_link_args.append('/LIBPATH:' + cuda_lib_path)
     else:
         cuda_lib_dirs = ['lib64', 'lib']
         for lib_dir in cuda_lib_dirs:
@@ -287,6 +323,7 @@ if WITH_CUDA:
     include_dirs.append(tmp_install_path + "/include/THCUNN")
     extra_compile_args += ['-DWITH_CUDA']
     extra_compile_args += ['-DCUDA_LIB_PATH=' + cuda_lib_path]
+    main_libraries += ['cudart']
     main_link_args += [THC_LIB, THCS_LIB, THCUNN_LIB]
     main_sources += [
         "torch/csrc/cuda/Module.cpp",
@@ -301,8 +338,11 @@ if WITH_CUDA:
 if WITH_CUDNN:
     main_libraries += ['cudnn']
     include_dirs.append(CUDNN_INCLUDE_DIR)
-    
-    extra_link_args.append('-L' + CUDNN_LIB_DIR)
+
+    if platform.system() == 'Windows':
+        extra_link_args.append('/LIBPATH:' + CUDNN_LIB_DIR)
+    else:
+        extra_link_args.append('-L' + CUDNN_LIB_DIR)
     main_sources += [
         "torch/csrc/cudnn/BatchNorm.cpp",
         "torch/csrc/cudnn/Conv.cpp",
@@ -357,7 +397,7 @@ THNN = Extension("torch._thnn._THNN",
                  extra_link_args=extra_link_args + [
                      TH_LIB,
                      THNN_LIB,
-                     'build/temp.win-amd64-3.5/Release/torch/csrc/_C.cp35-win_amd64.lib',
+                     _C_LIB,
                      make_relative_rpath('../lib'),
                  ]
                  )
@@ -373,30 +413,40 @@ if WITH_CUDA:
                            TH_LIB,
                            THC_LIB,
                            THCUNN_LIB,
-                           'build/temp.win-amd64-3.5/Release/torch/csrc/_C.cp35-win_amd64.lib',
+                           _C_LIB,
                            make_relative_rpath('../lib'),
                        ]
                        )
     extensions.append(THCUNN)
 
-version = "0.1"
+version = '0.1.9'
 if os.getenv('PYTORCH_BUILD_VERSION'):
+    assert os.getenv('PYTORCH_BUILD_NUMBER') is not None
     version = os.getenv('PYTORCH_BUILD_VERSION') \
         + '_' + os.getenv('PYTORCH_BUILD_NUMBER')
+else:
+    try:
+        sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=cwd).decode('ascii').strip()
+        version += '+' + sha[:7]
+    except subprocess.CalledProcessError:
+        pass
+
 
 setup(name="torch", version=version,
       ext_modules=extensions,
       cmdclass={
           'build': build,
+          'build_py': build_py,
           'build_ext': build_ext,
           'build_deps': build_deps,
           'build_module': build_module,
+          'develop': develop,
           'install': install,
           'clean': clean,
       },
       packages=packages,
       package_data={'torch': [
-          'lib/*.so*', 'lib/*.dylib*',
+          'lib/*.so*', 'lib/*.dylib*', 'lib/*.dll',
           'lib/torch_shm_manager',
           'lib/*.h',
           'lib/include/TH/*.h', 'lib/include/TH/generic/*.h',

@@ -140,7 +140,7 @@ class RNN(RNNBase):
         num_layers: Number of recurrent layers.
         nonlinearity: The non-linearity to use ['tanh'|'relu']. Default: 'tanh'
         bias: If False, then the layer does not use bias weights b_ih and b_hh. Default: True
-        batch_first: If True, then the input tensor is provided as (batch, seq, feature)
+        batch_first: If True, then the input and output tensors are provided as (batch, seq, feature)
         dropout: If non-zero, introduces a dropout layer on the outputs of each RNN layer
         bidirectional: If True, becomes a bidirectional RNN. Default: False
 
@@ -214,7 +214,7 @@ class LSTM(RNNBase):
         hidden_size: The number of features in the hidden state h
         num_layers: Number of recurrent layers.
         bias: If False, then the layer does not use bias weights b_ih and b_hh. Default: True
-        batch_first: If True, then the input tensor is provided as (batch, seq, feature)
+        batch_first: If True, then the input and output tensors are provided as (batch, seq, feature)
         dropout: If non-zero, introduces a dropout layer on the outputs of each RNN layer
         bidirectional: If True, becomes a bidirectional RNN. Default: False
 
@@ -278,7 +278,7 @@ class GRU(RNNBase):
         hidden_size: The number of features in the hidden state h
         num_layers: Number of recurrent layers.
         bias: If False, then the layer does not use bias weights b_ih and b_hh. Default: True
-        batch_first: If True, then the input tensor is provided as (batch, seq, feature)
+        batch_first: If True, then the input and output tensors are provided as (batch, seq, feature)
         dropout: If non-zero, introduces a dropout layer on the outputs of each RNN layer
         bidirectional: If True, becomes a bidirectional RNN. Default: False
 
@@ -436,13 +436,13 @@ class LSTMCell(RNNCellBase):
     Examples::
 
         >>> rnn = nn.LSTMCell(10, 20)
-        >>> input = Variable(torch.randn(3, 10))
+        >>> input = Variable(torch.randn(6, 3, 10))
         >>> hx = Variable(torch.randn(3, 20))
         >>> cx = Variable(torch.randn(3, 20))
         >>> output = []
         >>> for i in range(6):
         ...     hx, cx = rnn(input, (hx, cx))
-        ...     output[i] = hx
+        ...     output.append(hx)
     """
 
     def __init__(self, input_size, hidden_size, bias=True):

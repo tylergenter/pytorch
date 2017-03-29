@@ -641,6 +641,7 @@ THC_API void THCTensor_(qr)(THCState *state, THCTensor *rq_, THCTensor *rr_, THC
   THCTensor_(narrow)(state, q, q, 1, 0, k);
   THCTensor_(freeCopyTo)(state, q, rq_);
 #else
+  fdsfdslkj
   THError(NoMagma(qr));
 #endif
 }

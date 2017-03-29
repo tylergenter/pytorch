@@ -19,6 +19,7 @@ HAS_SHM_FILES = os.path.isdir('/dev/shm')
 TEST_CUDA_IPC = torch.cuda.is_available() and \
     sys.version_info[0] == 3 and \
     sys.platform != 'darwin'
+TEST_MULTIGPU = TEST_CUDA_IPC and torch.cuda.device_count() > 1
 
 
 def simple_fill(queue, event):
@@ -79,9 +80,8 @@ def autograd_sharing(queue, ready, master_modified):
     is_ok = var.data.equal(expected_var)
     var.data[:] = torch.ones(5, 5)
 
-    if var.grad is not None:
-        is_ok &= var.grad.data.equal(torch.ones(5, 5) * 4)
-        var.grad.data[:] = torch.ones(5, 5)
+    is_ok &= var.grad.data.equal(torch.zeros(5, 5))
+    var.grad.data[:] = torch.ones(5, 5)
 
     queue.put(is_ok)
 
@@ -95,6 +95,14 @@ def fs_sharing():
     finally:
         mp.set_sharing_strategy(prev_strategy)
 
+class inherit_tensor_SubProcess(mp.Process):
+
+    def __init__(self, tensor):
+        super(inherit_tensor_SubProcess, self).__init__()
+        self.tensor = tensor
+
+    def run(self):
+        self.tensor.add_(3)
 
 class leak_checker(object):
 
@@ -179,7 +187,7 @@ class TestMultiprocessing(TestCase):
             self.assertTrue(t1.eq(1).all())
             self.assertTrue(id(t1.storage()) == id(t2.storage()))
             e.set()
-            p.join(1)
+            p.join()
             self.assertFalse(p.is_alive())
 
         with leak_checker(self) as lc:
@@ -228,15 +236,15 @@ class TestMultiprocessing(TestCase):
             for i in range(repeat):
                 do_test()
 
-    @unittest.skipIf(platform == 'darwin', "file descriptor strategy is not supported on OS X")
+    @unittest.skipIf(platform == 'darwin' or platform == 'win32', "file descriptor strategy is not supported on OS X and Windows")
     def test_fd_sharing(self):
         self._test_sharing(repeat=TEST_REPEATS)
 
-    @unittest.skipIf(platform == 'darwin', "file descriptor strategy is not supported on OS X")
+    @unittest.skipIf(platform == 'darwin' or platform == 'win32', "file descriptor strategy is not supported on OS X and Windows")
     def test_fd_preserve_sharing(self):
         self._test_preserve_sharing(repeat=TEST_REPEATS)
 
-    @unittest.skipIf(platform == 'darwin', "file descriptor strategy is not supported on OS X")
+    @unittest.skipIf(platform == 'darwin' or platform == 'win32', "file descriptor strategy is not supported on OS X and Windows")
     def test_fd_pool(self):
         self._test_pool(repeat=TEST_REPEATS)
 
@@ -268,17 +276,8 @@ class TestMultiprocessing(TestCase):
                 queue_put()
 
     def test_inherit_tensor(self):
-        class SubProcess(mp.Process):
-
-            def __init__(self, tensor):
-                super(SubProcess, self).__init__()
-                self.tensor = tensor
-
-            def run(self):
-                self.tensor.add_(3)
-
         t = torch.zeros(5, 5)
-        p = SubProcess(t.share_memory_())
+        p = inherit_tensor_SubProcess(t.share_memory_())
         p.start()
         p.join()
         self.assertEqual(t, torch.ones(5, 5) * 3, 0)
@@ -289,6 +288,7 @@ class TestMultiprocessing(TestCase):
         self._test_sharing(mp.get_context('spawn'), torch.cuda.FloatTensor)
 
     @unittest.skipIf(not TEST_CUDA_IPC, 'CUDA IPC not available')
+    @unittest.skipIf(not TEST_MULTIGPU, 'found only 1 GPU')
     def test_cuda_small_tensors(self):
         # Check multiple small tensors which will likely use the same
         # underlying cached allocation
@@ -357,20 +357,19 @@ class TestMultiprocessing(TestCase):
         queue = mp.Queue()
         p = mp.Process(target=autograd_sharing, args=(queue, ready, master_modified))
         p.start()
+        var.grad.data.zero_()
         queue.put(var)
 
         ready.wait()
         var.data[0, 0] = 1000
-        if var.grad is not None:
-            var.grad.data[:] = torch.ones(5, 5) * 4
+        var.grad.data[:] = torch.ones(5, 5) * 4
         master_modified.set()
 
         worker_ok = queue.get()
         self.assertTrue(worker_ok)
 
         self.assertEqual(var.data, torch.ones(5, 5))
-        if var.grad is not None:
-            self.assertEqual(var.grad.data, torch.ones(5, 5))
+        self.assertEqual(var.grad.data, torch.ones(5, 5) * 4)
         p.join()
 
     def test_variable_sharing(self):
@@ -395,7 +394,7 @@ class TestMultiprocessing(TestCase):
         t.share_memory_()
         self.assertTrue(t.is_shared())
 
-    @unittest.skipIf(platform == 'darwin', "file descriptor strategy is not supported on OS X")
+    @unittest.skipIf(platform == 'darwin' or platform == 'win32', "file descriptor strategy is not supported on OS X and Windows")
     def test_is_shared(self):
         self._test_is_shared()
 

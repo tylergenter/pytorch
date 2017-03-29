@@ -200,9 +200,9 @@ static PyObject * THPStorage_(shareCuda)(THPStorage *self)
   THPObjectPtr device = PyLong_FromLong(storage->device);
   THPObjectPtr _handle = Py_None;
   Py_INCREF(Py_None);
-  THPObjectPtr size = PyLong_FromLong(storage->size);
+  THPObjectPtr size = PyLong_FromLongLong(storage->size);
   THPObjectPtr _offset = PyLong_FromLong(0);
-  THPObjectPtr view_size = PyLong_FromLong(storage->size);
+  THPObjectPtr view_size = PyLong_FromLongLong(storage->size);
   if (storage->data) {
     size_t base_size;
     void *base_ptr = THCCachingAllocator_getBaseAllocation(storage->data, &base_size);
