@@ -53,9 +53,9 @@ void THCSTensor_(contiguous)(THCState *state, THCSTensor *self) {
 void THCSTensor_(transpose)(THCState *state, THCSTensor *self, int d1, int d2) {
   /* TODO
   THCudaLongTensor *indices = THCSTensor_(indices)(state, self);
-  long i;
+  int64_t i;
   for (i = 0; i < THCSTensor_(nnz)(state, self); i++) {
-    long tmp = THCTensor_fastGet2d(indices, d1, i);
+    int64_t tmp = THCTensor_fastGet2d(indices, d1, i);
     THCTensor_fastSet2d(indices, d1, i,
         THCTensor_fastGet2d(indices, d2, i));
     THCTensor_fastSet2d(indices, d2, i, tmp);
@@ -67,6 +67,15 @@ void THCSTensor_(transpose)(THCState *state, THCSTensor *self, int d1, int d2) {
   THFree(indices);
   */
   THError("WARNING: Sparse Cuda Tensor op transpose is not implemented");
+}
+
+int THCSTensor_(getDevice)(THCState* state, const THCSTensor* tensor) {
+  if (!tensor->values || !tensor->values->storage) return -1;
+  return THCStorage_(getDevice)(state, tensor->values->storage);
+}
+
+void THCTensor_(sparseMask)(THCState *state, THCSTensor *r_, THCTensor *t, THCSTensor *mask) {
+  THError("WARNING: Sparse Cuda Tensor op sparseMask is not implemented");
 }
 
 #endif

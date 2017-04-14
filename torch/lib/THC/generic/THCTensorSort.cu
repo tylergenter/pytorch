@@ -281,9 +281,9 @@ THC_API void THCTensor_(sort)(THCState* state,
                                THCudaLongTensor *indices,
                                THCTensor *input,
                                int dim, int order) {
-  THAssert(THCTensor_(checkGPU)(state, 2, sorted, input));
-  THAssert(THCudaLongTensor_checkGPU(state, 1, indices));
-  int dims = THCTensor_(nDimension)(state, sorted);
+  THCAssertSameGPU(THCTensor_(checkGPU)(state, 2, sorted, input));
+  THCAssertSameGPU(THCudaLongTensor_checkGPU(state, 1, indices));
+  int64_t dims = THCTensor_(nDimension)(state, sorted);
   THArgCheck(dims <= MAX_CUTORCH_DIMS, 2, CUTORCH_DIM_WARNING);
   dims = THCTensor_(nDimension)(state, input);
   THArgCheck(dims <= MAX_CUTORCH_DIMS, 4, CUTORCH_DIM_WARNING);

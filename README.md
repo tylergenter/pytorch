@@ -30,15 +30,32 @@ We are in an early-release Beta. Expect some adventures and rough edges.
 
 At a granular level, PyTorch is a library that consists of the following components:
 
-| \_                       | \_ |
-| ------------------------ | --- |
-| torch                    | a Tensor library like NumPy, with strong GPU support |
-| torch.autograd           | a tape based automatic differentiation library that supports all differentiable Tensor operations in torch |
-| torch.nn                 | a neural networks library deeply integrated with autograd designed for maximum flexibility |
-| torch.optim              | an optimization package to be used with torch.nn with standard optimization methods such as SGD, RMSProp, LBFGS, Adam etc. |
-| torch.multiprocessing    | python multiprocessing, but with magical memory sharing of torch Tensors across processes. Useful for data loading and hogwild training. |
-| torch.utils              | DataLoader, Trainer and other utility functions for convenience |
-| torch.legacy(.nn/.optim) | legacy code that has been ported over from torch for backward compatibility reasons |
+<table>
+<tr>
+    <td><b> torch </b></td>
+    <td> a Tensor library like NumPy, with strong GPU support </td>
+</tr>
+<tr>
+    <td><b> torch.autograd </b></td>
+    <td> a tape based automatic differentiation library that supports all differentiable Tensor operations in torch </td>
+</tr>
+<tr>
+    <td><b> torch.nn </b></td>
+    <td> a neural networks library deeply integrated with autograd designed for maximum flexibility </td>
+</tr>
+<tr>
+    <td><b> torch.multiprocessing  </b></td>
+    <td> python multiprocessing, but with magical memory sharing of torch Tensors across processes. Useful for data loading and hogwild training. </td>
+</tr>
+<tr>
+    <td><b> torch.utils </b></td>
+    <td> DataLoader, Trainer and other utility functions for convenience </td>
+</tr>
+<tr>
+    <td><b> torch.legacy(.nn/.optim) </b></td>
+    <td> legacy code that has been ported over from torch for backward compatibility reasons </td>
+</tr>
+</table>
 
 Usually one uses PyTorch either as:
 
@@ -118,20 +135,19 @@ Writing new neural network modules, or interfacing with PyTorch's Tensor API was
 and with minimal abstractions.
 
 You can write new neural network layers in Python using the torch API
-[or your favorite numpy based libraries such as SciPy](https://github.com/pytorch/tutorials/blob/master/Creating%20extensions%20using%20numpy%20and%20scipy.ipynb).
+[or your favorite numpy based libraries such as SciPy](http://pytorch.org/tutorials/advanced/numpy_extensions_tutorial.html).
 
 If you want to write your layers in C/C++, we provide an extension API based on
-[cffi](http://cffi.readthedocs.io/en/latest/) that is efficient and with minimal boilerplate.  
-There is no wrapper code that needs to be written. [You can see an example here](https://github.com/pytorch/extension-ffi).
+[cffi](http://cffi.readthedocs.io/en/latest/) that is efficient and with minimal boilerplate.
+There is no wrapper code that needs to be written. You can see [a tutorial here](http://pytorch.org/tutorials/advanced/c_extension.html) and [an example here](https://github.com/pytorch/extension-ffi).
 
 
 ## Installation
 
 ### Binaries
-- Anaconda
-```bash
-conda install pytorch torchvision -c soumith
-```
+Commands to install from binaries via Conda or pip wheels are on our website:
+
+[http://pytorch.org](http://pytorch.org)
 
 ### From source
 
@@ -174,15 +190,11 @@ python setup.py install
 
 ### Docker image
 
-Dockerfiles are supplied to build images with cuda support and cudnn v5 and cudnn v6 RC. Build them as usual
+Dockerfile is supplied to build images with cuda support and cudnn v6. Build as usual
 ```
-docker build . -t pytorch-cudnnv5 
+docker build -t pytorch-cudnnv6 .
 ```
-or 
-```
-docker build . -t pytorch-cudnnv6 -f tools/docker/Dockerfile-v6
-```
-and run them with nvidia-docker:
+and run  with nvidia-docker:
 ```
 nvidia-docker run --rm -ti --ipc=host pytorch-cudnnv5
 ```
@@ -194,7 +206,7 @@ should increase shared memory size either with --ipc=host or --shm-size command 
 ## Getting Started
 
 Three pointers to get you started:
-- [Tutorials: notebooks to get you started with understanding and using PyTorch](https://github.com/pytorch/tutorials)
+- [Tutorials: get you started with understanding and using PyTorch](http://pytorch.org/tutorials/)
 - [Examples: easy to understand pytorch code across all domains](https://github.com/pytorch/examples)
 - The API Reference: [http://pytorch.org/docs/](http://pytorch.org/docs/)
 

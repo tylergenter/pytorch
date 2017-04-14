@@ -39,6 +39,7 @@ static bool THPModule_loadClasses(PyObject *self)
   ASSERT_NOT_NULL(tensor_classes = PyObject_GetAttrString(torch_module, (char*)"_tensor_classes"));
   if (!THPDoubleTensor_postInit(torch_module)) return false;
   if (!THPFloatTensor_postInit(torch_module)) return false;
+  if (!THPHalfTensor_postInit(torch_module)) return false;
   if (!THPLongTensor_postInit(torch_module)) return false;
   if (!THPIntTensor_postInit(torch_module)) return false;
   if (!THPShortTensor_postInit(torch_module)) return false;
@@ -47,6 +48,7 @@ static bool THPModule_loadClasses(PyObject *self)
 
   ASSERT_NOT_NULL(THPDoubleStorageClass = PyObject_GetAttrString(torch_module,(char*)"DoubleStorage"));
   ASSERT_NOT_NULL(THPFloatStorageClass  = PyObject_GetAttrString(torch_module,(char*)"FloatStorage"));
+  ASSERT_NOT_NULL(THPHalfStorageClass   = PyObject_GetAttrString(torch_module,(char*)"HalfStorage"));
   ASSERT_NOT_NULL(THPLongStorageClass   = PyObject_GetAttrString(torch_module,(char*)"LongStorage"));
   ASSERT_NOT_NULL(THPIntStorageClass    = PyObject_GetAttrString(torch_module,(char*)"IntStorage"));
   ASSERT_NOT_NULL(THPShortStorageClass  = PyObject_GetAttrString(torch_module,(char*)"ShortStorage"));
@@ -72,6 +74,7 @@ static bool THPModule_assignStateless(PyObject *self)
   PyObject *stateless;
   INIT_STATELESS(Double);
   INIT_STATELESS(Float);
+  INIT_STATELESS(Half);
   INIT_STATELESS(Long);
   INIT_STATELESS(Int);
   INIT_STATELESS(Short);
@@ -140,6 +143,8 @@ PyObject * THPModule_fromNumpy(PyObject *_unused, PyObject *array)
     return PyObject_CallFunctionObjArgs(THPLongTensorClass, array, NULL);
   } else if (type == NPY_INT32) {
     return PyObject_CallFunctionObjArgs(THPIntTensorClass, array, NULL);
+  } else if (type == NPY_INT16) {
+    return PyObject_CallFunctionObjArgs(THPShortTensorClass, array, NULL);
   } else if (type == NPY_UINT8) {
     return PyObject_CallFunctionObjArgs(THPByteTensorClass, array, NULL);
   }
@@ -177,13 +182,7 @@ static PyObject * TH_CONCAT_2(THPModule_, name)(PyObject *_unused, PyObject *arg
   }                                                                            \
                                                                                \
 dispatch:                                                                      \
-  THPObjectPtr methods = PyObject_GetAttrString(tensor, THP_STATELESS_ATTRIBUTE_NAME); \
-  THPUtils_assert(methods, "Type %s doesn't implement stateless methods",      \
-      tensor == THPDefaultTensorClass ? THPUtils_classname(tensor) : THPUtils_typename(tensor)); \
-  THPObjectPtr method = PyObject_GetAttrString(methods, #name);                \
-  THPUtils_assert(method, "Type %s doesn't implement stateless method " #name, \
-      tensor == THPDefaultTensorClass ? THPUtils_classname(tensor) : THPUtils_typename(tensor)); \
-  return PyObject_Call(method, args, kwargs);                                  \
+  return THPUtils_dispatchStateless(tensor, #name, args, kwargs);              \
 }
 
 IMPLEMENT_STATELESS(sigmoid)
@@ -295,6 +294,8 @@ IMPLEMENT_STATELESS(qr)
 IMPLEMENT_STATELESS(geqrf)
 IMPLEMENT_STATELESS(orgqr)
 IMPLEMENT_STATELESS(ormqr)
+IMPLEMENT_STATELESS(btrifact)
+IMPLEMENT_STATELESS(btrisolve)
 
 #undef IMPLEMENT_STATELESS
 
@@ -323,13 +324,7 @@ static PyObject * TH_CONCAT_2(THPModule_, name)(PyObject *_unused, PyObject *arg
   }                                                                            \
                                                                                \
 dispatch:                                                                      \
-  THPObjectPtr methods = PyObject_GetAttrString(tensor, THP_STATELESS_ATTRIBUTE_NAME); \
-  THPUtils_assert(methods, "Type %s doesn't implement stateless methods",      \
-      tensor == THPDefaultTensorClass ? THPUtils_classname(tensor) : THPUtils_typename(tensor)); \
-  THPObjectPtr method = PyObject_GetAttrString(methods, #name);                \
-  THPUtils_assert(method, "Type %s doesn't implement stateless method " #name, \
-      tensor == THPDefaultTensorClass ? THPUtils_classname(tensor) : THPUtils_typename(tensor)); \
-  return PyObject_Call(method, args, kwargs);                                  \
+  return THPUtils_dispatchStateless(tensor, #name, args, kwargs);              \
 }
 
 IMPLEMENT_STATELESS_REVERSED(gt)
@@ -351,14 +346,7 @@ static PyObject * THPModule_nonzero(PyObject *_unused, PyObject *args, PyObject 
     tensor = PyTuple_GET_ITEM(args, 0);
   else if (PyTuple_Size(args) == 2)
     tensor = PyTuple_GET_ITEM(args, 1);
-
-  THPObjectPtr methods = PyObject_GetAttrString(tensor, THP_STATELESS_ATTRIBUTE_NAME);
-  THPUtils_assert(methods, "Type %s doesn't implement stateless methods",
-      tensor == THPDefaultTensorClass ? THPUtils_classname(tensor) : THPUtils_typename(tensor));
-  THPObjectPtr method = PyObject_GetAttrString(methods, "nonzero");
-  THPUtils_assert(method, "Type %s doesn't implement stateless method nonzero",
-      tensor == THPDefaultTensorClass ? THPUtils_classname(tensor) : THPUtils_typename(tensor));
-  return PyObject_Call(method, args, kwargs);
+  return THPUtils_dispatchStateless(tensor, "nonzero", args, kwargs);
 }
 
 static PyObject * THPModule_randperm(PyObject *_unused, PyObject *args, PyObject *kwargs)
@@ -367,13 +355,7 @@ static PyObject * THPModule_randperm(PyObject *_unused, PyObject *args, PyObject
   PyObject *out;
   if (kwargs && (out = PyDict_GetItemString(kwargs, "out")))
       tensor = out;
-  THPObjectPtr methods = PyObject_GetAttrString(tensor, THP_STATELESS_ATTRIBUTE_NAME);
-  THPUtils_assert(methods, "Type %s doesn't implement stateless methods",
-      tensor == THPDefaultTensorClass ? THPUtils_classname(tensor) : THPUtils_typename(tensor));
-  THPObjectPtr method = PyObject_GetAttrString(methods, "randperm");
-  THPUtils_assert(method, "Type %s doesn't implement stateless method randperm",
-      tensor == THPDefaultTensorClass ? THPUtils_classname(tensor) : THPUtils_typename(tensor));
-  return PyObject_Call(method, args, kwargs);
+  return THPUtils_dispatchStateless(tensor, "randperm", args, kwargs);
 }
 
 static PyObject * THPModule_cat(PyObject *_unused, PyObject *args)
@@ -385,8 +367,8 @@ static PyObject * THPModule_cat(PyObject *_unused, PyObject *args)
     PyObject *first_arg = PyTuple_GET_ITEM(args, 0);
     if (THPModule_isTensor(first_arg)) {
       tensor = first_arg;
-    } else if ((iterator = PyObject_GetIter(first_arg))) {
-      item = PyIter_Next(iterator);
+    } else if (PySequence_Check(first_arg)) {
+      item = PySequence_GetItem(first_arg, 0);
       if (item && (THPModule_isTensor(item) || THPVariable_Check(item))) {
         tensor = item;
       }
@@ -394,13 +376,7 @@ static PyObject * THPModule_cat(PyObject *_unused, PyObject *args)
     PyErr_Clear();
   }
 
-  THPObjectPtr methods = PyObject_GetAttrString(tensor, THP_STATELESS_ATTRIBUTE_NAME);
-  THPUtils_assert(methods, "Type %s doesn't implement statless methods",
-      tensor == THPDefaultTensorClass ? THPUtils_classname(tensor) : THPUtils_typename(tensor));
-  THPObjectPtr method = PyObject_GetAttrString(methods, "cat");
-  THPUtils_assert(method, "Type %s doesn't implement stateless method cat",
-      tensor == THPDefaultTensorClass ? THPUtils_classname(tensor) : THPUtils_typename(tensor));
-  return PyObject_Call(method, args, NULL);
+  return THPUtils_dispatchStateless(tensor, "cat", args, NULL);
 }
 
 PyObject *THPModule_safeCall(PyObject *_unused, PyObject *args, PyObject *kwargs)
@@ -480,6 +456,7 @@ extern PyObject * THCPModule_setDevice_wrap(PyObject *self, PyObject *arg);
 extern PyObject * THCPModule_getDevice_wrap(PyObject *self);
 extern PyObject * THCPModule_getDeviceCount_wrap(PyObject *self);
 extern PyObject * THCPModule_getCurrentStream_wrap(PyObject *self);
+extern PyObject * THCPModule_getCurrentBlasHandle_wrap(PyObject *self);
 extern PyObject * THCPModule_setStream_wrap(PyObject *self, PyObject *stream);
 extern PyObject * THCPModule_getDriverVersion(PyObject *self);
 extern PyObject * THCPModule_isDriverSufficient(PyObject *self);
@@ -494,6 +471,8 @@ extern PyObject * THCPModule_cudaHostAllocator(PyObject *_unused);
 extern PyObject * THCPModule_cudaSynchronize(PyObject *_unused);
 extern PyObject * THCPModule_getLibPath(PyObject *_unused);
 extern PyObject * THCPModule_cudaSleep(PyObject *_unused, PyObject *cycles);
+extern PyObject * THCPModule_cudaLockMutex(PyObject *module);
+extern PyObject * THCPModule_cudaUnlockMutex(PyObject *module);
 
 extern PyObject * THCSPModule_initExtension(PyObject *self);
 #endif
@@ -509,6 +488,7 @@ static PyMethodDef TorchMethods[] = {
   {"_cuda_getDevice",   (PyCFunction)THCPModule_getDevice_wrap,   METH_NOARGS,  NULL},
   {"_cuda_getDeviceCount", (PyCFunction)THCPModule_getDeviceCount_wrap, METH_NOARGS, NULL},
   {"_cuda_getCurrentStream", (PyCFunction)THCPModule_getCurrentStream_wrap, METH_NOARGS, NULL},
+  {"_cuda_getCurrentBlasHandle", (PyCFunction)THCPModule_getCurrentBlasHandle_wrap, METH_NOARGS, NULL},
   {"_cuda_setStream",    (PyCFunction)THCPModule_setStream_wrap,  METH_O, NULL},
   {"_cuda_isDriverSufficient", (PyCFunction)THCPModule_isDriverSufficient, METH_NOARGS, NULL},
   {"_cuda_getDriverVersion", (PyCFunction)THCPModule_getDriverVersion, METH_NOARGS, NULL},
@@ -524,6 +504,8 @@ static PyMethodDef TorchMethods[] = {
   {"_cuda_getLibPath", (PyCFunction)THCPModule_getLibPath, METH_NOARGS, NULL},
   {"_cuda_sleep", (PyCFunction)THCPModule_cudaSleep, METH_O, NULL},
   {"_cuda_sparse_init",  (PyCFunction)THCSPModule_initExtension,    METH_NOARGS,  NULL},
+  {"_cuda_lock_mutex",   (PyCFunction)THCPModule_cudaLockMutex,   METH_NOARGS,  NULL},
+  {"_cuda_unlock_mutex", (PyCFunction)THCPModule_cudaUnlockMutex, METH_NOARGS,  NULL},
 #endif
   {"_safe_call",      (PyCFunction)THPModule_safeCall,          METH_VARARGS | METH_KEYWORDS, NULL},
   {"_set_default_tensor_type", (PyCFunction)THPModule_setDefaultTensorType, METH_O, NULL},
@@ -648,10 +630,13 @@ static PyMethodDef TorchMethods[] = {
   {"geqrf",           (PyCFunction)THPModule_geqrf,             METH_VARARGS | METH_KEYWORDS, NULL},
   {"orgqr",           (PyCFunction)THPModule_orgqr,             METH_VARARGS | METH_KEYWORDS, NULL},
   {"ormqr",           (PyCFunction)THPModule_ormqr,             METH_VARARGS | METH_KEYWORDS, NULL},
+  {"btrifact",        (PyCFunction)THPModule_btrifact,          METH_VARARGS | METH_KEYWORDS, NULL},
+  {"btrisolve",       (PyCFunction)THPModule_btrisolve,         METH_VARARGS | METH_KEYWORDS, NULL},
 
   // Sparse functions
   {"smm",             (PyCFunction)THSPModule_sspmm,          METH_VARARGS | METH_KEYWORDS,  NULL},
   {"saddmm",          (PyCFunction)THSPModule_sspaddmm,       METH_VARARGS | METH_KEYWORDS,  NULL},
+  {"dsmm",            (PyCFunction)THSPModule_spmm,           METH_VARARGS | METH_KEYWORDS,  NULL},
   {NULL, NULL, 0, NULL}
 };
 
@@ -767,6 +752,7 @@ PyMODINIT_FUNC PyInit__C()
 
   ASSERT_TRUE(THPDoubleStorage_init(module));
   ASSERT_TRUE(THPFloatStorage_init(module));
+  ASSERT_TRUE(THPHalfStorage_init(module));
   ASSERT_TRUE(THPLongStorage_init(module));
   ASSERT_TRUE(THPIntStorage_init(module));
   ASSERT_TRUE(THPShortStorage_init(module));
@@ -775,6 +761,7 @@ PyMODINIT_FUNC PyInit__C()
 
   ASSERT_TRUE(THPDoubleTensor_init(module));
   ASSERT_TRUE(THPFloatTensor_init(module));
+  ASSERT_TRUE(THPHalfTensor_init(module));
   ASSERT_TRUE(THPLongTensor_init(module));
   ASSERT_TRUE(THPIntTensor_init(module));
   ASSERT_TRUE(THPShortTensor_init(module));

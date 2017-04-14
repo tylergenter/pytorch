@@ -102,6 +102,10 @@ class Module(object):
             self._parameters[name] = param
 
     def add_module(self, name, module):
+        """Adds a child module to the current module.
+
+        The module can be accessed as an attribute using the given name.
+        """
         if hasattr(self, name):
             raise KeyError("attribute already exists '{}'".format(name))
         if not isinstance(module, Module) and module is not None:
@@ -179,7 +183,7 @@ class Module(object):
         that removes the hook from the module.
         """
         handle = hooks.RemovableHandle(self._backward_hooks)
-        self._backward_hooks[id(handle)] = hook
+        self._backward_hooks[handle.id] = hook
         return handle
 
     def register_forward_hook(self, hook):
@@ -195,7 +199,7 @@ class Module(object):
         that removes the hook from the module.
         """
         handle = hooks.RemovableHandle(self._forward_hooks)
-        self._forward_hooks[id(handle)] = hook
+        self._forward_hooks[handle.id] = hook
         return handle
 
     def __call__(self, *input, **kwargs):
@@ -211,12 +215,10 @@ class Module(object):
             var = var[0]
         creator = var.creator
         if creator is not None and len(self._backward_hooks) > 0:
-            if creator._backward_hooks is None:
-                creator._backward_hooks = OrderedDict()
             for hook in self._backward_hooks.values():
                 wrapper = functools.partial(hook, self)
                 functools.update_wrapper(wrapper, hook)
-                creator._backward_hooks[id(wrapper)] = wrapper
+                creator.register_hook(wrapper)
         return result
 
     def __getattr__(self, name):
@@ -232,14 +234,20 @@ class Module(object):
             modules = self.__dict__['_modules']
             if name in modules:
                 return modules[name]
-        return object.__getattribute__(self, name)
+        return object.__getattr__(self, name)
 
     def __setattr__(self, name, value):
+        def remove_from(*dicts):
+            for d in dicts:
+                if name in d:
+                    del d[name]
+
         params = self.__dict__.get('_parameters')
         if isinstance(value, Parameter):
             if params is None:
                 raise AttributeError(
                     "cannot assign parameters before Module.__init__() call")
+            remove_from(self.__dict__, self._buffers, self._modules)
             self.register_parameter(name, value)
         elif params is not None and name in params:
             if value is not None:
@@ -253,6 +261,7 @@ class Module(object):
                 if modules is None:
                     raise AttributeError(
                         "cannot assign module before Module.__init__() call")
+                remove_from(self.__dict__, self._parameters, self._buffers)
                 modules[name] = value
             elif modules is not None and name in modules:
                 if value is not None:
@@ -261,11 +270,21 @@ class Module(object):
                                     .format(torch.typename(value), name))
                 modules[name] = value
             else:
-                object.__setattr__(self, name, value)
+                buffers = self.__dict__.get('_buffers')
+                if buffers is not None and name in buffers:
+                    if value is not None and not torch.is_tensor(value):
+                        raise TypeError("cannot assign '{}' as buffer '{}' "
+                                        "(torch.Tensor or None expected)"
+                                        .format(torch.typename(value), name))
+                    buffers[name] = value
+                else:
+                    object.__setattr__(self, name, value)
 
     def __delattr__(self, name):
         if name in self._parameters:
             del self._parameters[name]
+        elif name in self._buffers:
+            del self._buffers[name]
         elif name in self._modules:
             del self._modules[name]
         else:
@@ -340,31 +359,82 @@ class Module(object):
                 yield p
 
     def children(self):
-        """Returns an iterator over children modules."""
+        """Returns an iterator over immediate children modules."""
+        for name, module in self.named_children():
+            yield module
+
+    def named_children(self):
+        """Returns an iterator over immediate children modules, yielding both
+        the name of the module as well as the module itself.
+
+        Example:
+            >>> for name, module in model.named_children():
+            >>>     if name in ['conv4', 'conv5']:
+            >>>         print(module)
+        """
         memo = set()
-        for module in self._modules.values():
+        for name, module in self._modules.items():
             if module is not None and module not in memo:
                 memo.add(module)
-                yield module
+                yield name, module
 
-    def modules(self, memo=None):
+    def modules(self):
+        """Returns an iterator over all modules in the network.
+
+        Note:
+            Duplicate modules are returned only once. In the following
+            example, ``l`` will be returned only once.
+
+            >>> l = nn.Linear(2, 2)
+            >>> net = nn.Sequential(l, l)
+            >>> for idx, m in enumerate(net.modules()):
+            >>>     print(idx, '->', m)
+            0 -> Sequential (
+              (0): Linear (2 -> 2)
+              (1): Linear (2 -> 2)
+            )
+            1 -> Linear (2 -> 2)
+        """
+        for name, module in self.named_modules():
+            yield module
+
+    def named_modules(self, memo=None, prefix=''):
+        """Returns an iterator over all modules in the network, yielding
+        both the name of the module as well as the module itself.
+
+        Note:
+            Duplicate modules are returned only once. In the following
+            example, ``l`` will be returned only once.
+
+            >>> l = nn.Linear(2, 2)
+            >>> net = nn.Sequential(l, l)
+            >>> for idx, m in enumerate(net.named_modules()):
+            >>>     print(idx, '->', m)
+            0 -> ('', Sequential (
+              (0): Linear (2 -> 2)
+              (1): Linear (2 -> 2)
+            ))
+            1 -> ('0', Linear (2 -> 2))
+        """
+
         if memo is None:
             memo = set()
         if self not in memo:
             memo.add(self)
-            yield self
-            for module in self.children():
-                for m in module.modules(memo):
+            yield prefix, self
+            for name, module in self._modules.items():
+                submodule_prefix = prefix + ('.' if prefix else '') + name
+                for m in module.named_modules(memo, submodule_prefix):
                     yield m
 
-    def train(self):
+    def train(self, mode=True):
         """Sets the module in training mode.
 
         This has any effect only on modules such as Dropout or BatchNorm.
         """
-        self.training = True
+        self.training = mode
         for module in self.children():
-            module.train()
+            module.train(mode)
         return self
 
     def eval(self):
@@ -372,15 +442,12 @@ class Module(object):
 
         This has any effect only on modules such as Dropout or BatchNorm.
         """
-        self.training = False
-        for module in self.children():
-            module.eval()
-        return self
+        return self.train(False)
 
     def zero_grad(self):
         """Sets gradients of all model parameters to zero."""
         for p in self.parameters():
-            if p.requires_grad:
+            if p.grad is not None:
                 p.grad.data.zero_()
 
     def share_memory(self):

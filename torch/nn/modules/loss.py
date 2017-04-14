@@ -24,10 +24,10 @@ class _Loss(Module):
         return backend_fn(self.size_average)(input, target)
 
 
-class _WeighedLoss(_Loss):
+class _WeightedLoss(_Loss):
 
     def __init__(self, weight=None, size_average=True):
-        super(_WeighedLoss, self).__init__(size_average)
+        super(_WeightedLoss, self).__init__(size_average)
         self.register_buffer('weight', weight)
 
     def forward(self, input, target):
@@ -51,7 +51,7 @@ class L1Loss(_Loss):
     pass
 
 
-class NLLLoss(_WeighedLoss):
+class NLLLoss(_WeightedLoss):
     r"""The negative log likelihood loss. It is useful to train a classification problem with n classes
 
     If provided, the optional argument `weights` should be a 1D Tensor assigning
@@ -97,7 +97,7 @@ class NLLLoss(_WeighedLoss):
         >>> m = nn.LogSoftmax()
         >>> loss = nn.NLLLoss()
         >>> # input is of size nBatch x nClasses = 3 x 5
-        >>> input = autograd.Variable(torch.randn(3, 5))
+        >>> input = autograd.Variable(torch.randn(3, 5), requires_grad=True)
         >>> # each element in target has to have 0 <= value < nclasses
         >>> target = autograd.Variable(torch.LongTensor([1, 0, 4]))
         >>> output = loss(m(input), target)
@@ -106,15 +106,15 @@ class NLLLoss(_WeighedLoss):
     pass
 
 
-class NLLLoss2d(_Loss):
+class NLLLoss2d(_WeightedLoss):
     r"""This is negative log likehood loss, but for image inputs. It computes NLL loss per-pixel.
 
-    This loss does not support per-class weights
-
     Args:
+        weight (Tensor, optional): a manual rescaling weight given to each class.
+            If given, has to be a 1D Tensor having as many elements, as there are classes.
         size_average: By default, the losses are averaged over observations for each minibatch.
-                      However, if the field sizeAverage is set to False, the losses
-                      are instead summed for each minibatch. Default: True
+            However, if the field sizeAverage is set to False, the losses
+            are instead summed for each minibatch. Default: True
 
     Shape:
         - Input: :math:`(N, C, H, W)` where `C = number of classes`
@@ -133,7 +133,7 @@ class NLLLoss2d(_Loss):
     pass
 
 
-class KLDivLoss(_WeighedLoss):
+class KLDivLoss(_WeightedLoss):
     r"""The `Kullback-Leibler divergence`_ Loss
 
     KL divergence is a useful distance measure for continuous distributions
@@ -165,7 +165,7 @@ class MSELoss(_Loss):
     r"""Creates a criterion that measures the mean squared error between
     `n` elements in the input `x` and target `y`:
 
-    ..math:: loss(x, y) = 1/n \sum |x_i - y_i|^2
+    :math:`{loss}(x, y)  = 1/n \sum |x_i - y_i|^2`
 
     `x` and `y` arbitrary shapes with a total of `n` elements each.
 
@@ -178,19 +178,18 @@ class MSELoss(_Loss):
     pass
 
 
-class BCELoss(_WeighedLoss):
+class BCELoss(_WeightedLoss):
     r"""Creates a criterion that measures the Binary Cross Entropy
     between the target and the output:
 
-    ..math:: loss(o, t) = - 1/n \sum_i (t[i] * log(o[i]) + (1 - t[i]) * log(1 - o[i]))
+    .. math:: loss(o, t) = - 1/n \sum_i (t[i] * log(o[i]) + (1 - t[i]) * log(1 - o[i]))
 
     or in the case of the weights argument being specified:
 
-    ..math:: loss(o, t) = - 1/n \sum_i weights[i] * (t[i] * log(o[i]) + (1 - t[i]) * log(1 - o[i]))
+    .. math:: loss(o, t) = - 1/n \sum_i weights[i] * (t[i] * log(o[i]) + (1 - t[i]) * log(1 - o[i]))
 
     This is used for measuring the error of a reconstruction in for example
-    an auto-encoder. Note that the targets `t[i]` should be numbers between 0 and 1,
-    for instance, the output of an `nn.Sigmoid` layer.
+    an auto-encoder. Note that the targets `t[i]` should be numbers between 0 and 1.
 
     By default, the losses are averaged for each minibatch over observations
     *as well as* over dimensions. However, if the field `sizeAverage` is set
@@ -276,7 +275,7 @@ class SoftMarginLoss(_Loss):
     pass
 
 
-class CrossEntropyLoss(_WeighedLoss):
+class CrossEntropyLoss(_WeightedLoss):
     r"""This criterion combines `LogSoftMax` and `NLLLoss` in one single class.
 
     It is useful when training a classification problem with `n` classes.
@@ -314,7 +313,7 @@ class CrossEntropyLoss(_WeighedLoss):
                                self.weight, self.size_average)
 
 
-class MultiLabelSoftMarginLoss(_WeighedLoss):
+class MultiLabelSoftMarginLoss(_WeightedLoss):
     r"""Creates a criterion that optimizes a multi-label one-versus-all
     loss based on max-entropy, between input `x`  (a 2D mini-batch `Tensor`) and
     target `y` (a binary 2D `Tensor`). For each sample in the minibatch::
@@ -405,6 +404,7 @@ class MultiMarginLoss(Module):
     a 1D `weights` tensor into the constructor.
 
     The loss function then becomes:
+
         loss(x, y) = sum_i(max(0, w[y] * (margin - x[y] - x[i]))^p) / x.size(0)
 
     By default, the losses are averaged over observations for each minibatch.

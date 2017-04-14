@@ -41,27 +41,27 @@ class UpsamplingNearest2d(_UpsamplingBase):
     Shape:
         - Input: :math:`(N, C, H_{in}, W_{in})`
         - Output: :math:`(N, C, H_{out}, W_{out})` where
-          :math:`H_{out} = floor((H_{in} * scale_factor`
-          :math:`W_{out} = floor((W_{in}  * scale_factor`
+          :math:`H_{out} = floor(H_{in} * scale\_factor)`
+          :math:`W_{out} = floor(W_{in}  * scale\_factor)`
 
     Examples::
 
-    >>> inp
-    Variable containing:
-    (0 ,0 ,.,.) =
-      1  2
-      3  4
-    [torch.FloatTensor of size 1x1x2x2]
+        >>> inp
+        Variable containing:
+        (0 ,0 ,.,.) =
+          1  2
+          3  4
+        [torch.FloatTensor of size 1x1x2x2]
 
-    >>> m = nn.UpsamplingNearest2d(scale_factor=2)
-    >>> m(inp)
-    Variable containing:
-    (0 ,0 ,.,.) =
-      1  1  2  2
-      1  1  2  2
-      3  3  4  4
-      3  3  4  4
-    [torch.FloatTensor of size 1x1x4x4]
+        >>> m = nn.UpsamplingNearest2d(scale_factor=2)
+        >>> m(inp)
+        Variable containing:
+        (0 ,0 ,.,.) =
+          1  1  2  2
+          1  1  2  2
+          3  3  4  4
+          3  3  4  4
+        [torch.FloatTensor of size 1x1x4x4]
 
     """
 
@@ -86,27 +86,27 @@ class UpsamplingBilinear2d(_UpsamplingBase):
     Shape:
         - Input: :math:`(N, C, H_{in}, W_{in})`
         - Output: :math:`(N, C, H_{out}, W_{out})` where
-          :math:`H_{out} = floor((H_{in} * scale_factor`
-          :math:`W_{out} = floor((W_{in}  * scale_factor`
+          :math:`H_{out} = floor(H_{in} * scale\_factor)`
+          :math:`W_{out} = floor(W_{in}  * scale\_factor)`
 
     Examples::
 
-    >>> inp
-    Variable containing:
-    (0 ,0 ,.,.) =
-      1  2
-      3  4
-    [torch.FloatTensor of size 1x1x2x2]
+        >>> inp
+        Variable containing:
+        (0 ,0 ,.,.) =
+          1  2
+          3  4
+        [torch.FloatTensor of size 1x1x2x2]
 
-    >>> m = nn.UpsamplingBilinear2d(scale_factor=2)
-    >>> m(inp)
-    Variable containing:
-    (0 ,0 ,.,.) =
-      1.0000  1.3333  1.6667  2.0000
-      1.6667  2.0000  2.3333  2.6667
-      2.3333  2.6667  3.0000  3.3333
-      3.0000  3.3333  3.6667  4.0000
-    [torch.FloatTensor of size 1x1x4x4]
+        >>> m = nn.UpsamplingBilinear2d(scale_factor=2)
+        >>> m(inp)
+        Variable containing:
+        (0 ,0 ,.,.) =
+          1.0000  1.3333  1.6667  2.0000
+          1.6667  2.0000  2.3333  2.6667
+          2.3333  2.6667  3.0000  3.3333
+          3.0000  3.3333  3.6667  4.0000
+        [torch.FloatTensor of size 1x1x4x4]
 
     """
 

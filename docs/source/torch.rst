@@ -8,6 +8,7 @@ Tensors
 .. autofunction:: is_storage
 .. autofunction:: set_default_tensor_type
 .. autofunction:: numel
+.. autofunction:: set_printoptions
 
 
 Creation Ops
@@ -38,6 +39,7 @@ Indexing, Slicing, Joining, Mutating Ops
 .. autofunction:: t
 .. autofunction:: transpose
 .. autofunction:: unbind
+.. autofunction:: unsqueeze
 
 
 Random sampling
@@ -158,6 +160,8 @@ BLAS and LAPACK Operations
 .. autofunction:: addr
 .. autofunction:: baddbmm
 .. autofunction:: bmm
+.. autofunction:: btrifact
+.. autofunction:: btrisolve                  
 .. autofunction:: dot
 .. autofunction:: eig
 .. autofunction:: gels

@@ -4,6 +4,9 @@
 #include <unordered_map>
 #include <TH/TH.h>
 #include <THC/THCCachingAllocator.h>
+#ifdef WITH_NCCL
+#include <nccl.h>
+#endif
 
 #include "THCP.h"
 
@@ -60,6 +63,7 @@ static bool THCPModule_assignStateless()
   PyObject *stateless;
   INIT_STATELESS(Double);
   INIT_STATELESS_DETAIL(Float, Cuda);
+  INIT_STATELESS(Half);
   INIT_STATELESS(Long);
   INIT_STATELESS(Int);
   INIT_STATELESS(Short);
@@ -105,7 +109,9 @@ PyObject * THCPModule_getDeviceCount_wrap(PyObject *self)
 {
   HANDLE_TH_ERRORS
   int ndevice;
-  THCudaCheck(cudaGetDeviceCount(&ndevice));
+  cudaError_t error = cudaGetDeviceCount(&ndevice);
+  if (error != cudaSuccess)
+    ndevice = 0;
   return PyLong_FromLong(ndevice);
   END_HANDLE_TH_ERRORS
 }
@@ -238,6 +244,20 @@ PyObject * THCPModule_cudaSleep(PyObject *_unused, PyObject *cycles)
   END_HANDLE_TH_ERRORS
 }
 
+PyObject * THCPModule_cudaLockMutex(PyObject *module)
+{
+  auto mutex = THCCachingAllocator_getCudaFreeMutex();
+  mutex->lock();
+  Py_RETURN_NONE;
+}
+
+PyObject * THCPModule_cudaUnlockMutex(PyObject *module)
+{
+  auto mutex = THCCachingAllocator_getCudaFreeMutex();
+  mutex->unlock();
+  Py_RETURN_NONE;
+}
+
 PyObject * THCPModule_getLibPath(PyObject *_unused)
 {
 #define _STR(x) #x
@@ -256,6 +276,7 @@ PyObject * THCPModule_getLibPath(PyObject *_unused)
 ////////////////////////////////////////////////////////////////////////////////
 
 bool THCPModule_initCuda(PyObject *torch_module) {
+  HANDLE_TH_ERRORS
 #define ASSERT_TRUE(cond) if (!(cond)) { return false; }
   state = THCState_alloc();
   THCState_setDeviceAllocator(state, THCCachingAllocator_get());
@@ -283,6 +304,7 @@ bool THCPModule_initCuda(PyObject *torch_module) {
   // TODO: register THCudaShutdown handler at exit
   return true;
 #undef ASSERT_TRUE
+  END_HANDLE_TH_ERRORS
 }
 
 // Callback for python part. Used for additional initialization of python classes
@@ -294,4 +316,21 @@ PyObject * THCPModule_initExtension(PyObject *self)
     return NULL;
   }
   return PyBool_FromLong(THCPModule_initCuda(torch_module));
+}
+
+#ifdef WITH_NCCL
+void THCPModule_useNccl()
+{
+  // Use NCCL to ensure that the symbols are loaded
+  ncclUniqueId uniqueId;
+  ncclGetUniqueId(&uniqueId);
+}
+#endif
+
+PyObject * THCPModule_getCurrentBlasHandle_wrap(PyObject *self)
+{
+  HANDLE_TH_ERRORS
+  cublasHandle_t handle = THCState_getCurrentBlasHandle(state);
+  return PyLong_FromVoidPtr(handle);
+  END_HANDLE_TH_ERRORS
 }

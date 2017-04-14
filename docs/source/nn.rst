@@ -28,6 +28,18 @@ Containers
 .. autoclass:: Sequential
     :members:
 
+:hidden:`ModuleList`
+~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: ModuleList
+    :members:
+
+:hidden:`ParameterList`
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: ParameterList
+    :members:
+
 Convolution Layers
 ----------------------------------
 
@@ -138,6 +150,31 @@ Pooling Layers
 .. autoclass:: LPPool2d
     :members:
 
+:hidden:`AdaptiveMaxPool1d`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: AdaptiveMaxPool1d
+    :members:
+
+:hidden:`AdaptiveMaxPool2d`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: AdaptiveMaxPool2d
+    :members:       
+
+:hidden:`AdaptiveAvgPool1d`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: AdaptiveAvgPool1d
+    :members:
+
+:hidden:`AdaptiveAvgPool2d`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: AdaptiveAvgPool2d
+    :members:
+
+       
 Non-linear Activations
 ----------------------------------
 
@@ -346,6 +383,15 @@ Sparse layers
 .. autoclass:: Embedding
     :members:
 
+Distance functions
+----------------------------------
+
+:hidden:`PairwiseDistance`
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: PairwiseDistance
+    :members:
+
 
 Loss functions
 ----------------------------------
@@ -451,13 +497,13 @@ Vision layers
     :members:
 
 :hidden:`UpsamplingNearest2d`
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: UpsamplingNearest2d
     :members:
 
 :hidden:`UpsamplingBilinear2d`
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: UpsamplingBilinear2d
     :members:
@@ -471,6 +517,36 @@ Multi-GPU layers
 
 .. autoclass:: DataParallel
     :members:
+
+
+Utilities
+---------
+
+:hidden:`clip_grad_norm`
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: torch.nn.utils.clip_grad_norm
+
+
+.. currentmodule:: torch.nn.utils.rnn
+
+:hidden:`PackedSequence`
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: torch.nn.utils.rnn.PackedSequence
+
+
+:hidden:`pack_padded_sequence`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: torch.nn.utils.rnn.pack_padded_sequence
+
+
+:hidden:`pad_packed_sequence`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: torch.nn.utils.rnn.pad_packed_sequence
+
 
 torch.nn.functional
 ===================
@@ -563,6 +639,27 @@ Pooling functions
 
 .. autofunction:: lp_pool2d
 
+:hidden:`adaptive_max_pool1d`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: adaptive_max_pool1d
+
+:hidden:`adaptive_max_pool2d`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: adaptive_max_pool2d
+
+:hidden:`adaptive_avg_pool1d`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: adaptive_avg_pool1d
+
+:hidden:`adaptive_avg_pool2d`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: adaptive_avg_pool2d
+
+   
 Non-linear activation functions
 -------------------------------
 
@@ -686,6 +783,15 @@ Dropout functions
 
 .. autofunction:: dropout
 
+Distance functions
+----------------------------------
+
+:hidden:`pairwise_distance`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: pairwise_distance
+
+
 Loss functions
 --------------
 
@@ -722,3 +828,22 @@ Vision functions
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: pixel_shuffle
+
+:hidden:`pad`
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: pad
+
+torch.nn.init
+=============
+
+.. currentmodule:: torch.nn.init
+.. autofunction:: uniform
+.. autofunction:: normal
+.. autofunction:: constant
+.. autofunction:: xavier_uniform
+.. autofunction:: xavier_normal
+.. autofunction:: kaiming_uniform
+.. autofunction:: kaiming_normal
+.. autofunction:: orthogonal
+.. autofunction:: sparse

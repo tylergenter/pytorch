@@ -20,7 +20,10 @@ struct th_storage_traits {};
 
 
 template<typename real>
-struct THPP_CLASS THStorage : public interface_traits<real>::storage_interface_type {
+struct THStorage : public interface_traits<real>::storage_interface_type {
+  template<typename U>
+  friend class THTensor;
+
 private:
   using interface_type = typename interface_traits<real>::storage_interface_type;
 public:

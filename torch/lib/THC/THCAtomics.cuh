@@ -1,6 +1,7 @@
 #ifndef THC_ATOMICS_INC
 #define THC_ATOMICS_INC
 
+#include "THC.h"
 #include "THCHalf.h"
 
 template <typename T, size_t n>
@@ -114,7 +115,7 @@ static inline  __device__ void atomicAdd(half *address, half val) {
 // from CUDA C Programmic Guide
 static inline  __device__  void atomicAdd(double *address, double val) {
   uint64_t* address_as_ull = (uint64_t*)address;
-  uint64_t = *address_as_ull;
+  uint64_t old = *address_as_ull;
   uint64_t assumed;
 
   do {

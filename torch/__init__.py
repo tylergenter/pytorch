@@ -27,9 +27,12 @@ __all__ = [
 # Load the extension module
 ################################################################################
 
-# Loading the extension with RTLD_GLOBAL option allows to not link extension
-# modules against the _C shared object. Their missing THP symbols will be
-# automatically filled by the dynamic loader.
+# if we have numpy, it *must* be imported before the call to setdlopenflags()
+# or there is risk that later c modules will segfault when importing numpy
+try:
+    import numpy as np
+except:
+    pass
 
 if platform.system() == 'Windows':
     from torch._C import *
@@ -37,7 +40,11 @@ if platform.system() == 'Windows':
     __all__ += [name for name in dir(_C)
                 if name[0] != '_' and
                 not name.endswith('Base')]
+
 else:
+    # Loading the extension with RTLD_GLOBAL option allows to not link extension
+    # modules against the _C shared object. Their missing THP symbols will be
+    # automatically filled by the dynamic loader.
     import os as _dl_flags
 
     # first check if the os package has the required flags
@@ -160,6 +167,10 @@ class FloatStorage(_C.FloatStorageBase, _StorageBase):
     pass
 
 
+class HalfStorage(_C.HalfStorageBase, _StorageBase):
+    pass
+
+
 class LongStorage(_C.LongStorageBase, _StorageBase):
     pass
 
@@ -198,6 +209,16 @@ class FloatTensor(_C.FloatTensorBase, _TensorBase):
     @classmethod
     def storage_type(cls):
         return FloatStorage
+
+
+class HalfTensor(_C.HalfTensorBase, _TensorBase):
+
+    def is_signed(self):
+        return True
+
+    @classmethod
+    def storage_type(cls):
+        return HalfStorage
 
 
 class LongTensor(_C.LongTensorBase, _TensorBase):
@@ -270,19 +291,23 @@ set_default_tensor_type('torch.FloatTensor')
 
 from .functional import *
 
+
 ################################################################################
 # Initialize extension
 ################################################################################
 
+def manager_path():
+    if platform.system() == 'Windows':
+        return b""
+    import os
+    path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'lib', 'torch_shm_manager')
+    if not os.path.exists(path):
+        raise RuntimeError("Unable to find torch_shm_manager at " + path)
+    return path.encode('utf-8')
+
+
 # Shared memory manager needs to know the exact location of manager executable
-import os
-manager_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'lib', 'torch_shm_manager')
-if sys.version_info[0] >= 3:
-    manager_path = bytes(manager_path, 'ascii')
-
-_C._initExtension(manager_path)
-
-del os
+_C._initExtension(manager_path())
 del manager_path
 
 ################################################################################

@@ -7,12 +7,14 @@ import torch
 import torch.cuda
 import torch.cuda.comm as comm
 
+from test_torch import TestTorch
 from common import TestCase, get_gpu_type, to_gpu, freeze_rng_state, run_tests
 
+HAS_CUDA = True
 if not torch.cuda.is_available():
     print('CUDA not available, skipping tests')
-    import sys
-    sys.exit()
+    TestCase = object  # noqa: F811
+    HAS_CUDA = False
 
 
 def is_floating(t):
@@ -57,6 +59,13 @@ def small_2d(t):
 
 def small_2d_scaled(t, scale=10):
     return make_tensor(t, S, S).mul(scale)
+
+
+def small_2d_oneish(t):
+    if is_floating(t):
+        return make_tensor(t, S, S).clamp(min=0.99, max=1.01)
+    else:
+        return t(S, S).fill_(1)
 
 
 def small_3d(t):
@@ -206,7 +215,7 @@ tests = [
     ('norm', small_3d, lambda t: [3, 0], '3_norm_dim'),
     ('ones', small_3d, lambda t: [1, 2, 3, 4, 5],),
     ('permute', new_t(1, 2, 3, 4), lambda t: [2, 1, 3, 0],),
-    ('prod', small_3d, lambda t: [],),
+    ('prod', small_2d_oneish, lambda t: [],),
     ('prod', small_3d, lambda t: [1], 'dim'),
     ('sum', small_2d, lambda t: [],),
     ('sum', small_3d, lambda t: [1], 'dim'),
@@ -375,7 +384,7 @@ class TestCuda(TestCase):
             self.assertEqual(z.get_device(), 0)
             self.assertIs(z.cuda(0), z)
 
-    def test_serialization(self):
+    def test_serialization_array_with_storage(self):
         x = torch.randn(5, 5).cuda()
         y = torch.IntTensor(2, 5).fill_(0).cuda()
         q = [x, y, x, y.storage()]
@@ -530,7 +539,7 @@ class TestCuda(TestCase):
         self.assertIs(type(x_copy), type(x))
         self.assertEqual(x_copy.get_device(), x.get_device())
 
-    def test_serialization_empty(self):
+    def test_serialization_array_with_empty(self):
         x = [torch.randn(4, 4).cuda(), torch.cuda.FloatTensor()]
         with tempfile.NamedTemporaryFile() as f:
             torch.save(x, f)
@@ -654,6 +663,38 @@ class TestCuda(TestCase):
         self.assertTrue(event.query())
         self.assertGreater(start_event.elapsed_time(event), 0)
 
+    def test_record_stream(self):
+        cycles_per_ms = get_cycles_per_ms()
+
+        t = torch.FloatTensor([1, 2, 3, 4]).pin_memory()
+        result = torch.cuda.FloatTensor(t.size())
+        stream = torch.cuda.Stream()
+        ptr = [None]
+
+        # Performs the CPU->GPU copy in a background stream
+        def perform_copy():
+            with torch.cuda.stream(stream):
+                tmp = t.cuda(async=True)
+                ptr[0] = tmp.data_ptr()
+            torch.cuda.current_stream().wait_stream(stream)
+            tmp.record_stream(torch.cuda.current_stream())
+            torch.cuda._sleep(int(50 * cycles_per_ms))  # delay the copy
+            result.copy_(tmp)
+
+        perform_copy()
+        with torch.cuda.stream(stream):
+            tmp2 = torch.cuda.FloatTensor(t.size())
+            tmp2.zero_()
+            self.assertNotEqual(tmp2.data_ptr(), ptr[0], 'allocation re-used to soon')
+
+        self.assertEqual(result.tolist(), [1, 2, 3, 4])
+
+        # Check that the block will be re-used after the main stream finishes
+        torch.cuda.current_stream().synchronize()
+        with torch.cuda.stream(stream):
+            tmp3 = torch.cuda.FloatTensor(t.size())
+            self.assertEqual(tmp3.data_ptr(), ptr[0], 'allocation not re-used')
+
     def test_caching_pinned_memory(self):
         cycles_per_ms = get_cycles_per_ms()
 
@@ -673,40 +714,73 @@ class TestCuda(TestCase):
         self.assertNotEqual(t.data_ptr(), ptr, 'allocation re-used too soon')
         self.assertEqual(list(gpu_tensor), [1])
 
+    @unittest.skipIf(torch.cuda.device_count() < 2, "only one GPU detected")
+    def test_caching_pinned_memory_multi_gpu(self):
+        # checks that the events preventing pinned memory from being re-used
+        # too early are recorded on the correct GPU
+        cycles_per_ms = get_cycles_per_ms()
 
-for decl in tests:
-    for t in types:
-        tensor = t()
-        gpu_tensor = get_gpu_type(t)()
-        if len(decl) == 3:
-            name, constr, arg_constr = decl
-            desc = ''
-        elif len(decl) == 4:
-            name, constr, arg_constr, desc = decl
-        elif len(decl) == 5:
-            name, constr, arg_constr, desc, type_subset = decl
-            if t not in type_subset:
-                continue
+        t = torch.FloatTensor([1]).pin_memory()
+        ptr = t.data_ptr()
+        gpu_tensor0 = torch.cuda.FloatTensor([0], device=0)
+        gpu_tensor1 = torch.cuda.FloatTensor([0], device=1)
 
-        precision = custom_precision.get(name, TestCuda.precision)
-        for inplace in (True, False):
-            if inplace:
-                name_inner = name + '_'
-            else:
-                name_inner = name
-            if not hasattr(tensor, name_inner):
-                continue
-            if not hasattr(gpu_tensor, name_inner):
-                print("Ignoring {}, because it's not implemented by torch.cuda.{}".format(
-                    name_inner, gpu_tensor.__class__.__name__))
-                continue
+        with torch.cuda.device(1):
+            torch.cuda._sleep(int(50 * cycles_per_ms))  # delay the copy
+            gpu_tensor1.copy_(t, async=True)
 
-            test_name = 'test_' + t.__name__ + '_' + name_inner
-            if desc:
-                test_name += '_' + desc
+        del t
+        t = torch.FloatTensor([2]).pin_memory()
+        self.assertNotEqual(t.data_ptr(), ptr, 'allocation re-used too soon')
 
-            assert not hasattr(TestCuda, test_name), "Duplicated test name: " + test_name
-            setattr(TestCuda, test_name, compare_cpu_gpu(constr, arg_constr, name_inner, t, precision))
+        with torch.cuda.device(0):
+            gpu_tensor0.copy_(t, async=True)
+
+        self.assertEqual(gpu_tensor1[0], 1)
+        self.assertEqual(gpu_tensor0[0], 2)
+
+    def test_btrifact(self):
+        TestTorch._test_btrifact(self, lambda t: t.cuda())
+
+    def test_btrisolve(self):
+        TestTorch._test_btrisolve(self, lambda t: t.cuda())
+
+
+if HAS_CUDA:
+    for decl in tests:
+        for t in types:
+            tensor = t()
+            gpu_tensor = get_gpu_type(t)()
+            if len(decl) == 3:
+                name, constr, arg_constr = decl
+                desc = ''
+            elif len(decl) == 4:
+                name, constr, arg_constr, desc = decl
+            elif len(decl) == 5:
+                name, constr, arg_constr, desc, type_subset = decl
+                if t not in type_subset:
+                    continue
+
+            precision = custom_precision.get(name, TestCuda.precision)
+            for inplace in (True, False):
+                if inplace:
+                    name_inner = name + '_'
+                else:
+                    name_inner = name
+                if not hasattr(tensor, name_inner):
+                    continue
+                if not hasattr(gpu_tensor, name_inner):
+                    print("Ignoring {}, because it's not implemented by torch.cuda.{}".format(
+                        name_inner, gpu_tensor.__class__.__name__))
+                    continue
+
+                test_name = 'test_' + t.__name__ + '_' + name_inner
+                if desc:
+                    test_name += '_' + desc
+
+                assert not hasattr(TestCuda, test_name), "Duplicated test name: " + test_name
+                setattr(TestCuda, test_name, compare_cpu_gpu(constr, arg_constr, name_inner, t, precision))
+
 
 if __name__ == '__main__':
     run_tests()

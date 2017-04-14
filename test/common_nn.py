@@ -7,8 +7,8 @@ from itertools import product
 import torch
 import torch.cuda
 from torch.autograd import Variable
-from common import TestCase, to_gpu, get_numerical_jacobian, iter_tensors, contiguous, \
-    freeze_rng_state
+from common import TestCase, to_gpu, freeze_rng_state
+from torch.autograd.gradcheck import get_numerical_jacobian, iter_tensors, contiguous
 import torch.backends.cudnn
 
 # tarfile module tries to obtain a file object name in python 3.3
@@ -164,13 +164,42 @@ module_tests = [
     ),
     dict(
         module_name='PReLU',
-        input_size=(2, 3, 4, 5)
+        input_size=(2, 3, 4),
+        reference_fn=lambda i, p: torch.clamp(i, min=0) + torch.clamp(i, max=0) * p[0][0],
+        desc='1d',
+    ),
+    dict(
+        module_name='PReLU',
+        constructor_args=(3,),
+        input_size=(2, 3, 4),
+        desc='1d_multiparam',
+        reference_fn=lambda i, p: torch.clamp(i, min=0) + torch.clamp(i, max=0) * p[0][0],
+    ),
+    dict(
+        module_name='PReLU',
+        input_size=(2, 3, 4, 5),
+        desc='2d',
+        reference_fn=lambda i, p: torch.clamp(i, min=0) + torch.clamp(i, max=0) * p[0][0],
     ),
     dict(
         module_name='PReLU',
         constructor_args=(3,),
         input_size=(2, 3, 4, 5),
-        desc='multiparam'
+        desc='2d_multiparam',
+        reference_fn=lambda i, p: torch.clamp(i, min=0) + torch.clamp(i, max=0) * p[0][0],
+    ),
+    dict(
+        module_name='PReLU',
+        input_size=(2, 3, 4, 5, 6),
+        reference_fn=lambda i, p: torch.clamp(i, min=0) + torch.clamp(i, max=0) * p[0][0],
+        desc='3d',
+    ),
+    dict(
+        module_name='PReLU',
+        constructor_args=(3,),
+        input_size=(2, 3, 4, 5, 6),
+        desc='3d_multiparam',
+        reference_fn=lambda i, p: torch.clamp(i, min=0) + torch.clamp(i, max=0) * p[0][0],
     ),
     dict(
         module_name='Softsign',
@@ -246,6 +275,13 @@ criterion_tests = [
         module_name='NLLLoss2d',
         input_size=(2, 3, 5, 5),
         target=torch.rand(2, 5, 5).mul(3).floor().long()
+    ),
+    dict(
+        module_name='NLLLoss2d',
+        constructor_args=(torch.rand(3),),
+        input_size=(2, 3, 5, 5),
+        target=torch.rand(2, 5, 5).mul(3).floor().long(),
+        desc='weights'
     ),
     dict(
         module_name='HingeEmbeddingLoss',
@@ -330,15 +366,18 @@ class NNTestCase(TestCase):
 
     def _flatten_tensors(self, x):
         if torch.is_tensor(x):
-            return x.view(-1)
+            if x.is_sparse:
+                return x.to_dense().view(-1)
+            else:
+                return x.view(-1)
         elif isinstance(x, Variable):
-            return x.data.view(-1)
+            return self._flatten_tensors(x.data)
         else:
             return tuple(self._flatten_tensors(a) for a in x)
 
     def _zero_grad_input(self, input):
         if isinstance(input, Variable):
-            if input.requires_grad:
+            if input.requires_grad and input.grad is not None:
                 input.grad.data.zero_()
         elif torch.is_tensor(input):
             return
@@ -403,9 +442,9 @@ class NNTestCase(TestCase):
         # TODO: enable non-contig tests
         input = contiguous(input)
         if jacobian_input:
-            res += get_numerical_jacobian(fw, input, input),
+            res += get_numerical_jacobian(fw, input, input, eps=1e-6),
         if jacobian_parameters:
-            res += torch.cat(list(get_numerical_jacobian(fw, input, p) for p in param), 0),
+            res += torch.cat(list(get_numerical_jacobian(fw, input, p, eps=1e-6) for p in param), 0),
         return res
 
     def check_jacobian(self, module, input, jacobian_input=True):

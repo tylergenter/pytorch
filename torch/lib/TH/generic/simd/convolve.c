@@ -1,7 +1,6 @@
-
 #include "THGeneral.h"
 
-#if defined(USE_AVX)
+#if defined(__AVX__)
 
 #ifdef _MSC_VER
 #include <intrin.h>
@@ -116,7 +115,7 @@ void convolve_5x5_sse(float* output, float* input, float* kernel, int64_t outRow
 void convolve_5x5_avx(float* output, float* input, float* kernel, int64_t outRows, int64_t outCols, int64_t outStride, int64_t inCols);
 
 void convolve_5x5(float* output, float* input, float* kernel, int64_t outRows, int64_t outCols, int64_t inCols) {
-#if defined(USE_AVX)
+#if defined(__AVX__)
   int avx = haveCPUFeature(kCPUFeature_AVX);
   if (avx)
   {

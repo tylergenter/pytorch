@@ -51,6 +51,7 @@ IF(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     THCTensorRandom.cpp
     THCCachingAllocator.cpp
     THCCachingHostAllocator.cpp
+    THCStream.cpp
     PROPERTIES COMPILE_FLAGS -std=${CXX_VERSION})
 ELSE()
   SET(CMAKE_CXX_STANDARD 11)
@@ -158,7 +159,7 @@ SET(src
     THCCachingHostAllocator.cpp
     THCGeneral.c
     THCStorageCopy.c
-    THCStream.c
+    THCStream.cpp
     THCTensor.c
     THCTensorCopy.c
     THCTensorRandom.cpp
@@ -187,6 +188,8 @@ SET(src-cuda
   THCTensorTopK.cu
   THCTensorSort.cu
   THCTensorTypeUtils.cu
+  THCSortUtils.cu
+  THCTensorMode.cu
   )
 
 # loop over all types
@@ -290,6 +293,7 @@ INSTALL(FILES
           THCTensorRandom.cuh
           THCTensorMathMagma.cuh
           THCThrustAllocator.cuh
+          THCTensorMode.cuh
           DESTINATION "${THC_INSTALL_INCLUDE_SUBDIR}/THC")
 
 INSTALL(FILES
@@ -334,4 +338,6 @@ INSTALL(FILES
           generic/THCDeviceTensorUtils.cu
           generic/THCTensorRandom.h
           generic/THCTensorRandom.cu
+          generic/THCTensorMode.h
+          generic/THCTensorMode.cu
           DESTINATION "${THC_INSTALL_INCLUDE_SUBDIR}/THC/generic")

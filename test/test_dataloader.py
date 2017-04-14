@@ -4,7 +4,7 @@ import torch
 import traceback
 import unittest
 from torch.utils.data import Dataset, TensorDataset, DataLoader
-from common import TestCase, run_tests
+from common import TestCase, run_tests, TEST_NUMPY
 from common_nn import TEST_CUDA
 
 
@@ -123,6 +123,22 @@ class TestDataLoader(TestCase):
             self.assertTrue(input.is_pinned())
             self.assertTrue(target.is_pinned())
 
+    @unittest.skipIf(not TEST_NUMPY, "numpy unavailable")
+    def test_numpy(self):
+        import numpy as np
+
+        class TestDataset(torch.utils.data.Dataset):
+            def __getitem__(self, i):
+                return np.ones((2, 3, 4)) * i
+
+            def __len__(self):
+                return 1000
+
+        loader = DataLoader(TestDataset(), batch_size=12)
+        batch = next(iter(loader))
+        self.assertIsInstance(batch, torch.DoubleTensor)
+        self.assertEqual(batch.size(), torch.Size([12, 2, 3, 4]))
+
     def test_error(self):
         self._test_error(DataLoader(ErrorDataset(100), batch_size=2, shuffle=True))
 
@@ -156,6 +172,29 @@ class TestDataLoader(TestCase):
         check_len(self.dataset, 100)
         check_len(DataLoader(self.dataset, batch_size=2), 50)
         check_len(DataLoader(self.dataset, batch_size=3), 34)
+
+
+class StringDataset(Dataset):
+    def __init__(self):
+        self.s = '12345'
+
+    def __len__(self):
+        return len(self.s)
+
+    def __getitem__(self, ndx):
+        return (self.s[ndx], ndx)
+
+
+class TestStringDataLoader(TestCase):
+    def setUp(self):
+        self.dataset = StringDataset()
+
+    @unittest.skipIf(not TEST_CUDA, "CUDA unavailable")
+    def test_shuffle_pin_memory(self):
+        loader = DataLoader(self.dataset, batch_size=2, shuffle=True, num_workers=4, pin_memory=True)
+        for batch_ndx, (s, n) in enumerate(loader):
+            self.assertIsInstance(s[0], str)
+            self.assertTrue(n.is_pinned())
 
 
 if __name__ == '__main__':

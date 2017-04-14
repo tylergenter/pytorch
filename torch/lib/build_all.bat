@@ -1,4 +1,5 @@
 
+
 @echo off
 cd "%~dp0"
 cd "../.."
@@ -16,20 +17,18 @@ set C_FLAGS=%BASIC_C_FLAGS% /D_WIN32 /Z7 /EHa /DNOMINMAX
 set LINK_FLAGS=/DEBUG:FULL
 
 mkdir tmp_install
-rem call:build TH
-rem call:build THS
-rem call:build THNN
+call:build TH
+call:build THS
+call:build THNN
 
-call:build THC
 IF "%~1"=="--with-cuda" (
-  rem call:build THC
-  rem call:build THCS
-  rem call:build THCUNN
-  rem call:build_nccl
+  call:build THC
+  call:build THCS
+  call:build THCUNN
 )
 
-rem call:build THPP
-rem call:build libshm_windows
+call:build THPP
+call:build libshm_windows
 
 copy /Y tmp_install\lib\* .
 copy /Y tmp_install\bin\* .
@@ -54,16 +53,18 @@ goto:eof
                   -DTH_LIBRARIES="%INSTALL_DIR%/lib/TH.lib" ^
                   -DTHS_LIBRARIES="%INSTALL_DIR%/lib/THS.lib" ^
                   -DTHC_LIBRARIES="%INSTALL_DIR%/lib/THC.lib" ^
+                  -DTHCS_LIBRARIES="%INSTALL_DIR%/lib/THCS.lib" ^
                   -DTH_SO_VERSION=1 ^
                   -DTHC_SO_VERSION=1 ^
                   -DTHNN_SO_VERSION=1 ^
                   -DTHCUNN_SO_VERSION=1 ^
                   -DCMAKE_BUILD_TYPE=Release ^
-                  -DLAPACK_LIBRARIES="%INSTALL_DIR%/lib/liblapack.lib" -DLAPACK_FOUND=TRUE
+                  -DLAPACK_LIBRARIES="%INSTALL_DIR%/lib/libopenblas.lib" -DLAPACK_FOUND=TRUE
                   :: debug/release
 
   msbuild INSTALL.vcxproj /p:Configuration=Release
   cd ../..
 
 goto:eof
+
 

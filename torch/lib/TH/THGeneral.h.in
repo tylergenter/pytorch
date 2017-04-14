@@ -14,7 +14,6 @@
 
 #cmakedefine USE_BLAS
 #cmakedefine USE_LAPACK
-#cmakedefine BLAS_IS_ACCELERATE
 #cmakedefine BLAS_F2C
 
 #ifdef __cplusplus
@@ -31,12 +30,6 @@
 # endif
 #else
 # define TH_API TH_EXTERNC
-#endif
-
-#define TH_INLINE @TH_INLINE@
-
-#ifndef __cplusplus
-#define inline @TH_INLINE@
 #endif
 
 #ifndef M_PI
@@ -120,7 +113,11 @@ do {                                                                  \
 #define THMax(X, Y)  ((X) > (Y) ? (X) : (Y))
 
 #if (defined(_MSC_VER) || defined(__MINGW32__))
-# define log1p(x) THLog1p(x)
+#if defined(_MSC_VER)
+__inline double log1p(double x) { return THLog1p(x); }
+#else
+inline double log1p(double x) { return THLog1p(x); }
+#endif
 #define snprintf _snprintf
 #define popen _popen
 #define pclose _pclose

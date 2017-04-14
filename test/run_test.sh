@@ -6,7 +6,7 @@ COVERAGE=0
 while [[ "$#" -gt 0 ]]; do
     case "$1" in
         -p|--python) PYCMD=$2; shift 2 ;;
-        -c|--coverage) COVERAGE=1; shift 2 ;;
+        -c|--coverage) COVERAGE=1; shift 1;;
         --) shift; break ;;
         *) echo "Invalid argument: $1!" ; exit 1 ;;
     esac
@@ -77,8 +77,7 @@ if [[ "$TEST_DISTRIBUTED" -eq 1 ]]; then
 fi
 ################################################################################
 
-if [ "$1" == "coverage" ];
-then
+if [[ $COVERAGE -eq 1 ]]; then
     coverage combine
     coverage html
 fi

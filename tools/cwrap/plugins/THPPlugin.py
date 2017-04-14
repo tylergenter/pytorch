@@ -15,9 +15,11 @@ class THPPlugin(CWrapPlugin):
         'THTensor*': Template('((THPTensor*)$arg)->cdata'),
         'THBoolTensor*': Template('((THPBoolTensor*)$arg)->cdata'),
         'THIndexTensor*': Template('((THPIndexTensor*)$arg)->cdata'),
+        'THIntegerTensor*': Template('((THPIntegerTensor*)$arg)->cdata'),
 
         'THCudaTensor*': Template('((THCPFloatTensor*)$arg)->cdata'),
         'THCudaDoubleTensor*': Template('((THCPDoubleTensor*)$arg)->cdata'),
+        'THCudaLongTensor*': Template('((THCPLongTensor*)$arg)->cdata'),
 
         'THSFloatTensor*': Template('((THSPFloatTensor*)$arg)->cdata'),
         'THSDoubleTensor*': Template('((THSPDoubleTensor*)$arg)->cdata'),
@@ -51,9 +53,11 @@ class THPPlugin(CWrapPlugin):
         'THTensor*': Template('(PyObject*)Py_TYPE($arg) == THPTensorClass'),
         'THBoolTensor*': Template('(PyObject*)Py_TYPE($arg) == THPBoolTensorClass'),
         'THIndexTensor*': Template('(PyObject*)Py_TYPE($arg) == THPIndexTensorClass'),
+        'THIntegerTensor*': Template('(PyObject*)Py_TYPE($arg) == THPIntegerTensorClass'),
 
         'THCudaTensor*': Template('(PyObject*)Py_TYPE($arg) == THCPFloatTensorClass'),
         'THCudaDoubleTensor*': Template('(PyObject*)Py_TYPE($arg) == THCPDoubleTensorClass'),
+        'THCudaLongTensor*': Template('(PyObject*)Py_TYPE($arg) == THCPLongTensorClass'),
 
         'THSDoubleTensor*': Template('(PyObject*)Py_TYPE($arg) == THSPDoubleTensorClass'),
         'THSFloatTensor*': Template('(PyObject*)Py_TYPE($arg) == THSPFloatTensorClass'),
@@ -86,6 +90,7 @@ class THPPlugin(CWrapPlugin):
         'THSTensor*': Template('return THSPTensor_(New)($result);'),
         'THLongTensor*': Template('return THPLongTensor_New($result);'),
         'THLongStorage*': Template('return THPLongStorage_New($result);'),
+        'THCudaLongTensor*': Template('return THCPLongTensor_New($result);'),
         # TODO: make it smarter - it should return python long if result doesn't fit into an int
         'long': Template('return PyLong_FromLongLong($result);'),
         'int64_t': Template('return PyLong_FromLongLong($result);'),
@@ -153,6 +158,7 @@ ${cpu}
         'THIntTensor*': _allocate('Int', ALLOCATE_TMPL),
         'THBoolTensor*': _allocate('Byte', ALLOCATE_TMPL, ALLOCATE_CUDA),
         'THIndexTensor*': _allocate('Long', ALLOCATE_TMPL, ALLOCATE_CUDA),
+        'THIntegerTensor*': _allocate('Int', ALLOCATE_TMPL, ALLOCATE_CUDA),
 
         'THSTensor*': _allocate('', ALLOCATE_TMPL, sparse=True),
     }
@@ -167,10 +173,12 @@ ${cpu}
         'THIntTensor*': '" THPModuleStr "IntTensor',
         'THBoolTensor*': '" THPModuleStr "ByteTensor',
         'THIndexTensor*': '" THPModuleStr "LongTensor',
+        'THIntegerTensor*': '" THPModuleStr "IntTensor',
         'THFloatTensor*': '" THPModuleStr "FloatTensor',
         'THDoubleTensor*': '" THPModuleStr "DoubleTensor',
         'THCudaTensor*': 'torch.cuda.FloatTensor',
         'THCudaDoubleTensor*': 'torch.cuda.DoubleTensor',
+        'THCudaLongTensor*': 'torch.cuda.LongTensor',
         'THSize*': 'torch.Size',
         'THStride*': 'tuple',
         'long': 'int',
@@ -180,6 +188,7 @@ ${cpu}
         'double': 'float',
         'accreal': '" RealStr "',
         'bool': 'bool',
+        'const char*': 'bool',  # Can come only from bool option.
     }
 
     OUT_INIT = """
@@ -309,8 +318,6 @@ ${cpu}
 
     def process_declarations(self, declarations):
         new_declarations = []
-        register_only = [d for d in declarations if d.get('only_register', False)]
-        declarations = [d for d in declarations if not d.get('only_register', False)]
 
         def has_arg_type(declaration, type_name):
             return any(arg['type'] == type_name
@@ -328,8 +335,16 @@ ${cpu}
                        for arg in option['arguments'])
 
         for declaration in declarations:
+            # Disable all methods for THHalfTensor, unless cpu_half is True
+            if not declaration.get('cpu_half', False):
+                defined_if = '!defined(TH_REAL_IS_HALF)'
+                if 'defined_if' in declaration:
+                    defined_if += ' && (' + declaration['defined_if'] + ')'
+                declaration['defined_if'] = defined_if
+
             if declaration.get('only_register', False):
                 continue
+
             declaration.setdefault('python_name', declaration['name'])
             declaration.setdefault('variables', [])
             if has_arg_type(declaration, 'THSize*'):
@@ -359,7 +374,9 @@ ${cpu}
                     if arg['name'] == 'self':
                         arg['ignore_check'] = True
 
-        declarations = [d for d in declarations if not d.get('only_stateless', False)]
+        register_only = [d for d in declarations if d.get('only_register', False)]
+        declarations = [d for d in declarations
+                        if (not d.get('only_stateless', False)) and (not d.get('only_register', False))]
         self.declarations.extend(filter(lambda x: not x.get('only_stateless', False), register_only))
         self.stateless_declarations.extend(filter(lambda x: x.get('only_stateless', False), register_only))
 
@@ -375,6 +392,7 @@ ${cpu}
         for option in declaration['options']:
             for arg in option['arguments']:
                 if arg['name'] == 'self':
+                    arg['assign_name'] = 'self'
                     arg['name'] = 'source'
         return declaration
 
@@ -396,11 +414,14 @@ ${cpu}
             if 'defined_if' in declaration:
                 entry = self.preprocessor_guard(entry, declaration['defined_if'])
             tensor_methods += entry
-        return self.TENSOR_METHODS_DECLARATION.substitute(
+        generated = self.TENSOR_METHODS_DECLARATION.substitute(
             methods=tensor_methods,
             stateless=('' if not stateless else 'stateless_'),
             sparse=('' if not sparse else 'S'),
         )
+        if sparse:
+            generated = '#ifndef TH_REAL_IS_HALF\n' + generated + '\n#endif\n\n'
+        return generated
 
     def process_full_file(self, code):
         # We have to find a place before all undefs
@@ -421,7 +442,7 @@ ${cpu}
             return self.preprocessor_guard(code, declaration['defined_if'])
         return code
 
-    def process_all_unpacks(self, code, option):
+    def process_all_call_arg(self, code, option):
         return 'LIBRARY_STATE ' + code
 
     def process_all_checks(self, code, option):
@@ -445,7 +466,7 @@ ${cpu}
 
         return code
 
-    def process_option_code_template(self, template, option):
+    def process_pre_arg_assign(self, template, option):
         new_args = []
         for arg in option['arguments']:
             if not option.get('output_provided', True) and arg.get('output'):
