@@ -453,7 +453,7 @@
   with_stateless: True
   return: argument 0,1
   options:
-    - before_call: int __last_dim = THTensor_(nDimension)(LIBRARY_STATE ((THPTensor*)$arg2)->cdata)-1;
+    - before_call: int64_t __last_dim = THTensor_(nDimension)(LIBRARY_STATE ((THPTensor*)$arg2)->cdata)-1;
       arguments:
         - arg: THTensor* values
           output: True
@@ -478,7 +478,7 @@
   with_stateless: True
   return: argument 0,1
   options:
-    - before_call: int __last_dim = THTensor_(nDimension)(LIBRARY_STATE ((THPTensor*)$arg2)->cdata)-1;
+    - before_call: int64_t __last_dim = THTensor_(nDimension)(LIBRARY_STATE ((THPTensor*)$arg2)->cdata)-1;
       arguments:
         - arg: THTensor* values
           output: True
@@ -502,7 +502,7 @@
   with_stateless: True
   return: argument 0,1
   options:
-    - before_call: int __last_dim = THTensor_(nDimension)(LIBRARY_STATE ((THPTensor*)$arg2)->cdata)-1;
+    - before_call: int64_t __last_dim = THTensor_(nDimension)(LIBRARY_STATE ((THPTensor*)$arg2)->cdata)-1;
       arguments:
         - arg: THTensor* values
           output: True
@@ -525,7 +525,7 @@
   with_stateless: True
   return: argument 0,1
   options:
-    - before_call: int __last_dim = THTensor_(nDimension)(LIBRARY_STATE ((THPTensor*)$arg2)->cdata)-1;
+    - before_call: int64_t __last_dim = THTensor_(nDimension)(LIBRARY_STATE ((THPTensor*)$arg2)->cdata)-1;
       arguments:
         - arg: THTensor* values
           output: True
@@ -560,7 +560,7 @@
   with_stateless: True
   return: argument 0,1
   options:
-    - before_call: int __last_dim = THTensor_(nDimension)(LIBRARY_STATE ((THPTensor*)$arg2)->cdata)-1;
+    - before_call: int64_t __last_dim = THTensor_(nDimension)(LIBRARY_STATE ((THPTensor*)$arg2)->cdata)-1;
       arguments:
         - arg: THTensor* values
           output: True

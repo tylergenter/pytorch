@@ -95,15 +95,6 @@ def fs_sharing():
     finally:
         mp.set_sharing_strategy(prev_strategy)
 
-class inherit_tensor_SubProcess(mp.Process):
-
-    def __init__(self, tensor):
-        super(inherit_tensor_SubProcess, self).__init__()
-        self.tensor = tensor
-
-    def run(self):
-        self.tensor.add_(3)
-
 class leak_checker(object):
 
     def __init__(self, test_case):
@@ -285,6 +276,8 @@ class TestMultiprocessing(TestCase):
             def run(self):
                 self.tensor.add_(3)
 
+        t = torch.zeros(5, 5)
+        p = SubProcess(t.share_memory_())
         p.start()
         p.join(1)
         self.assertEqual(t, torch.ones(5, 5) * 3, 0)

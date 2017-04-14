@@ -113,7 +113,7 @@ void THNN_(unfolded_copy)(
     int64_t kw = rest % kW;
     int x, y;
     int64_t ix, iy;
-    real *dst = finput_data + nip*((size_t)kH*kW*outputHeight*outputWidth) + kh*((size_t)kW*outputHeight*outputWidth) + kw*((size_t)outputHeight*outputWidth);
+    real *dst = input_data + nip*((size_t)kH*kW*outputHeight*outputWidth) + kh*((size_t)kW*outputHeight*outputWidth) + kw*((size_t)outputHeight*outputWidth);
     real *src = input_data + nip*((size_t)inputHeight*inputWidth);
     if (padW > 0 || padH > 0) {
       int64_t lpad,rpad;

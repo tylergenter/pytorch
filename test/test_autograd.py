@@ -589,7 +589,7 @@ class TestAutograd(TestCase):
             self.assertIs(type(x.int().cuda().data), torch.cuda.IntTensor)
             self.assertIs(type(x.int().cuda().cpu().data), torch.IntTensor)
             if torch.cuda.device_count() > 2:
-                exx2 = x.float().cuda(1)
+                x2 = x.float().cuda(1)
                 self.assertIs(type(x2.data), torch.cuda.FloatTensor)
                 self.assertIs(x2.get_device(), 1)
                 x2 = x.float().cuda()

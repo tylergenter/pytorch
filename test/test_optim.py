@@ -44,7 +44,7 @@ class TestOptim(TestCase):
             # loss.backward() will give **slightly** different
             # gradients, than drosenbtock, because of a different ordering
             # of floating point operations. In most cases it doesn't matter,
-            # but some opticudmizers are so sensitive that they can temporarily
+            # but some optimizers are so sensitive that they can temporarily
             # diverge up to 1e-4, just to converge again. This makes the
             # comparison more stable.
             params.grad.data.copy_(drosenbrock(params.data))

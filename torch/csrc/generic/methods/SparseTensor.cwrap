@@ -141,8 +141,8 @@ PyObject * THSPTensor_(size)(PyObject *self, PyObject *args, PyObject *kwargs)
   return: THSTensor*
   arguments:
   - THSTensor* self
-  - int dim0
-  - int dim1
+  - int64_t dim0
+  - int64_t dim1
 ]]
 
 [[
@@ -152,8 +152,8 @@ PyObject * THSPTensor_(size)(PyObject *self, PyObject *args, PyObject *kwargs)
   return: argument 0
   arguments:
   - THSTensor* self
-  - int dim0
-  - int dim1
+  - int64_t dim0
+  - int64_t dim1
 ]]
 
 [[
