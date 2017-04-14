@@ -48,7 +48,7 @@ struct THCNumerics<int8_t> {
   static inline __host__ __device__  int8_t mul(int8_t a, int8_t b) { return a * b; }
   static inline __host__ __device__  int8_t sub(int8_t a, int8_t b) { return a - b; }
   static inline __host__ __device__  int8_t div(int8_t a, int8_t b) { return a / b; }
-  static inline __host__ __device__  int8_t abs(int8_t a) { return abs(a); }
+  static inline __host__ __device__  int8_t abs(int8_t a) { return ::abs((int)a); }
 };
 
 template <>
@@ -67,7 +67,7 @@ struct THCNumerics<int16_t> {
   static inline __host__ __device__  int16_t mul(int16_t a, int16_t b) { return a * b; }
   static inline __host__ __device__  int16_t sub(int16_t a, int16_t b) { return a - b; }
   static inline __host__ __device__  int16_t div(int16_t a, int16_t b) { return a / b; }
-  static inline __host__ __device__  int16_t abs(int16_t a) { return abs(a); }
+  static inline __host__ __device__  int16_t abs(int16_t a) { return ::abs((int)a); }
 };
 
 template <>
