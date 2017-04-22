@@ -350,7 +350,7 @@ void THCSTensor_(cadd)(THCState *state, THCSTensor *r_, THCSTensor *t, real valu
 
   // // saving those because they can be overwritten when doing in-place operations
   // ptrdiff_t t_nnz = t->nnz, s_nnz = src->nnz, max_nnz = t_nnz + s_nnz;
-  // long nDimI = src->nDimensionI;
+  // int64_t nDimI = src->nDimensionI;
   // THCIndexTensor *t_indices_ = THCSTensor_(newIndices)(state, t);
   // THCTensor *t_values_ = THCSTensor_(newValues)(state, t);
   // THCIndexTensor *s_indices_ = THCSTensor_(newIndices)(state, src);
@@ -361,8 +361,8 @@ void THCSTensor_(cadd)(THCState *state, THCSTensor *r_, THCSTensor *t, real valu
   // THCSTensor_(resizeAs)(state, r_, src);
   // THCSTensor_(_move)(state, r_, r_indices_, r_values_);
   //
-  // long valueSize = t_values_->stride[0];
-  // const dim3 block = dim3(min((long) getApplyBlock().x, valueSize));
+  // int64_t valueSize = t_values_->stride[0];
+  // const dim3 block = dim3(min((int64_t) getApplyBlock().x, valueSize));
   // dim3 grid;
   // THArgCheck(getApplyGrid(state, valueSize, grid), 1, CUTORCH_DIM_WARNING);
   //
@@ -373,7 +373,7 @@ void THCSTensor_(cadd)(THCState *state, THCSTensor *r_, THCSTensor *t, real valu
   //     TensorCAddOp<real>(value),
   //     I_INFO(r_indices_), I_INFO(t_indices_), I_INFO(s_indices_),
   //     V_INFO(r_values_), V_INFO(t_values_), V_INFO(s_values_),
-  //     (unsigned long)t_nnz, (unsigned long)s_nnz);
+  //     (uint64_t)t_nnz, (uint64_t)s_nnz);
   // THCudaCheck(cudaGetLastError());
   //
   // bool freeScratchSpace = false;
@@ -383,14 +383,14 @@ void THCSTensor_(cadd)(THCState *state, THCSTensor *r_, THCSTensor *t, real valu
   //       THCState_getCurrentDeviceScratchSpaceSize(state)));
   //   freeScratchSpace = true;
   // }
-  // THCSTensor_indexSparseUnionKernel<unsigned long, real>
+  // THCSTensor_indexSparseUnionKernel<uint64_t, real>
   //   <<<1, 1, 0, THCState_getCurrentStream(state)>>>(
   //     I_INFO(r_indices_), I_INFO(t_indices_), I_INFO(s_indices_),
-  //     (unsigned long)t_nnz, (unsigned long)s_nnz, (unsigned long*)scratchSpace);
+  //     (uint64_t)t_nnz, (uint64_t)s_nnz, (uint64_t*)scratchSpace);
   // THCudaCheck(cudaGetLastError());
   // // Synchronous!
-  // unsigned long nnzOut;
-  // THCudaCheck(cudaMemcpy(&nnzOut, scratchSpace, sizeof(unsigned long), cudaMemcpyDeviceToHost));
+  // uint64_t nnzOut;
+  // THCudaCheck(cudaMemcpy(&nnzOut, scratchSpace, sizeof(uint64_t), cudaMemcpyDeviceToHost));
   // r_->nnz = nnzOut;
   // r_->contiguous = 1;
   // if (freeScratchSpace) {
