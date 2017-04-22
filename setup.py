@@ -40,7 +40,7 @@ def parallelCCompile(self, sources, output_dir=None, macros=None,
 
     def _single_compile(obj):
         src, ext = build[obj]
-        self._compile(obj, src, ext, cc_args, edxtra_postargs, pp_opts)
+        self._compile(obj, src, ext, cc_args, extra_postargs, pp_opts)
     num_jobs = multiprocessing.cpu_count()
     multiprocessing.pool.ThreadPool(num_jobs).map(_single_compile, objects)
 
@@ -244,6 +244,7 @@ THCUNN_LIB = os.path.join(lib_path, 'libTHCUNN.so.1')
 THPP_LIB = os.path.join(lib_path, 'libTHPP.so.1')
 THD_LIB = os.path.join(lib_path, 'libTHD.so.1')
 NCCL_LIB = os.path.join(lib_path, 'libnccl.so.1')
+_C_LIB = None
 if platform.system() == 'Darwin':
     TH_LIB = os.path.join(lib_path, 'libTH.1.dylib')
     THS_LIB = os.path.join(lib_path, 'libTHS.1.dylib')
@@ -417,9 +418,8 @@ THNN = Extension("torch._thnn._THNN",
                  extra_link_args=extra_link_args + [
                      TH_LIB,
                      THNN_LIB,
-                     _C_LIB,
                      make_relative_rpath('../lib'),
-                 ]
+                 ] + [_C_LIB] if _C_LIB is not None else []
                  )
 extensions.append(THNN)
 
@@ -433,9 +433,8 @@ if WITH_CUDA:
                            TH_LIB,
                            THC_LIB,
                            THCUNN_LIB,
-                           _C_LIB,
                            make_relative_rpath('../lib'),
-                       ]
+                       ] + [_C_LIB] if _C_LIB is not None else []
                        )
     extensions.append(THCUNN)
 
