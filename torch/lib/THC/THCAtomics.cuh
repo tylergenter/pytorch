@@ -72,7 +72,7 @@ struct AtomicAddIntegerImpl<T, 8> {
     do {
       assumed = old;
       newval = val +  (T)old;
-      old = atomicCAS(address_as_ui, assumed, newval);
+      old = atomicCAS((unsigned long long *) address_as_ui, (unsigned long long) assumed, (unsigned long long) newval);
     } while (assumed != old);
   }
 };
@@ -120,8 +120,8 @@ static inline  __device__  void atomicAdd(double *address, double val) {
 
   do {
     assumed = old;
-    old = atomicCAS(address_as_ull, assumed,
-                    __double_as_longlong(val +
+    old = atomicCAS((unsigned long long *) address_as_ull, (unsigned long long) assumed,
+                    (unsigned long long) __double_as_longlong(val +
                     __longlong_as_double(assumed)));
 
     // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)

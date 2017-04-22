@@ -1,7 +1,7 @@
 #ifndef THC_DEVICE_ALLOCATOR_INC
 #define THC_DEVICE_ALLOCATOR_INC
 
-#ifdef __cplusplus
+#if (__cplusplus >= 201103L) || (defined(_MSC_VER) && defined(__cplusplus))
 #include <mutex>
 #endif
 
@@ -12,7 +12,7 @@ THC_API THCDeviceAllocator* THCCachingAllocator_get(void);
 THC_API void* THCCachingAllocator_getBaseAllocation(void *ptr, size_t *size);
 THC_API void THCCachingAllocator_recordStream(void *ptr, THCStream* stream);
 
-#ifdef __cplusplus
+#if (__cplusplus >= 201103L) || (defined(_MSC_VER) && defined(__cplusplus))
 THC_API std::mutex* THCCachingAllocator_getCudaFreeMutex();
 #endif
 
