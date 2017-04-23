@@ -24,7 +24,7 @@ struct thc_tensor_traits {};
 namespace thpp {
 
 template<typename real>
-struct THCTensor : public interface_traits<real>::tensor_interface_type {
+struct THPP_CLASS THCTensor : public interface_traits<real>::tensor_interface_type {
   template<typename U>
   friend class THCTensor;
 
@@ -46,11 +46,11 @@ public:
   virtual int nDim() const override;
   virtual long_range sizes() const override;
   virtual long_range strides() const override;
-  virtual const long* rawSizes() const override;
-  virtual const long* rawStrides() const override;
+  virtual const int64_t* rawSizes() const override;
+  virtual const int64_t* rawStrides() const override;
   virtual std::size_t storageOffset() const override;
   virtual std::size_t elementSize() const override;
-  virtual long long numel() const override;
+  virtual int64_t numel() const override;
   virtual bool isContiguous() const override;
   virtual void* data() override;
   virtual const void* data() const override;
@@ -59,8 +59,8 @@ public:
   virtual THCTensor& retain() override;
   virtual THCTensor& free() override;
 
-  virtual THCTensor& resize(const std::initializer_list<long>& new_size) override;
-  virtual THCTensor& resize(const std::vector<long>& new_size) override;
+  virtual THCTensor& resize(const std::initializer_list<int64_t>& new_size) override;
+  virtual THCTensor& resize(const std::vector<int64_t>& new_size) override;
   virtual THCTensor& resize(THLongStorage *size,
                             THLongStorage *stride) override;
   virtual THCTensor& resizeAs(const Tensor& src) override;
@@ -75,27 +75,27 @@ public:
                                 THLongStorage *stride) override;
 
   virtual THCTensor& narrow(const Tensor& src, int dimension,
-                           long firstIndex, long size) override;
+                           int64_t firstIndex, int64_t size) override;
   virtual THCTensor& select(const Tensor& src, int dimension,
-                           long sliceIndex) override;
+                           int64_t sliceIndex) override;
   virtual THCTensor& transpose(const Tensor& src, int dimension1,
                               int dimension2) override;
   virtual THCTensor& unfold(const Tensor& src, int dimension,
-                           long size, long step) override;
+                           int64_t size, int64_t step) override;
   virtual THCTensor& squeeze(const Tensor& src, int dimension) override;
   virtual THCTensor& unsqueeze(const Tensor& src, int dimension) override;
 
   virtual THCTensor& diag(const Tensor& src, int k) override;
-  virtual THCTensor& eye(long n, long m) override;
+  virtual THCTensor& eye(int64_t n, int64_t m) override;
   virtual THCTensor& range(scalar_type xmin, scalar_type xmax,
                           scalar_type step) override;
   // virtual Tensor& randperm() override; TODO
   virtual THCTensor& sort(const Tensor& ri, const Tensor& src,
                        int dimension, int desc) override;
   virtual THCTensor& topk(const Tensor& ri, const Tensor& src,
-                       long k, int dim, int dir, int sorted) override;
-  virtual THCTensor& tril(const Tensor& src, long k) override;
-  virtual THCTensor& triu(const Tensor& src, long k) override;
+                       int64_t k, int dim, int dir, int sorted) override;
+  virtual THCTensor& tril(const Tensor& src, int64_t k) override;
+  virtual THCTensor& triu(const Tensor& src, int64_t k) override;
   // TODO: remove in favor of cat
   virtual THCTensor& catArray(const std::vector<Tensor*>& inputs,
                              int dimension) override;
@@ -204,7 +204,7 @@ public:
   virtual THCTensor& min(const Tensor& indices_, const Tensor& src,
                         int dimension) override;
   virtual THCTensor& kthvalue(const Tensor& indices_, const Tensor& src,
-                             long k, int dimension) override;
+                             int64_t k, int dimension) override;
   virtual THCTensor& mode(const Tensor& indices_, const Tensor& src,
                          int dimension) override;
   virtual THCTensor& median(const Tensor& indices_, const Tensor& src,

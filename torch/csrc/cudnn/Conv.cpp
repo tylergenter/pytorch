@@ -251,7 +251,7 @@ void* tensorPointer(cudnnDataType_t dataType, THVoidTensor* tensor, int groupIdx
   char* ptr = (char*) tensor->storage->data;
   ptr += elementSize * tensor->storageOffset;
   if (groupIdx > 0) {
-    long size = 1;
+    int64_t size = 1;
     for (int i = dim; i < tensor->nDimension; ++i) {
       size *= tensor->size[i];
     }

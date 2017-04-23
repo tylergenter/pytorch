@@ -109,7 +109,9 @@ PyObject * THCPModule_getDeviceCount_wrap(PyObject *self)
 {
   HANDLE_TH_ERRORS
   int ndevice;
-  THCudaCheck(cudaGetDeviceCount(&ndevice));
+  cudaError_t error = cudaGetDeviceCount(&ndevice);
+  if (error != cudaSuccess)
+    ndevice = 0;
   return PyLong_FromLong(ndevice);
   END_HANDLE_TH_ERRORS
 }

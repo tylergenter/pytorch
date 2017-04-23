@@ -9,7 +9,7 @@
 #include "torch/csrc/utils/object_ptr.h"
 
 // (class, gpu id, sizes)
-using output_info_type = std::tuple<PyObject *, int, std::vector<long>>;
+using output_info_type = std::tuple<PyObject *, int, std::vector<int64_t>>;
 // (tensor, version when saved, version counter)
 // or
 // (None, 0, nullptr)

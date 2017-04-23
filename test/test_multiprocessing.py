@@ -34,7 +34,7 @@ def simple_pool_fill(tensor):
 
 
 def send_tensor(queue, event, tp):
-    t = torch.ones(5, 5).type(tp)
+    t = torch.ones(5, 5).type(tp)   
     queue.put(t)
     queue.put(t)
     event.wait()
@@ -94,7 +94,6 @@ def fs_sharing():
         yield
     finally:
         mp.set_sharing_strategy(prev_strategy)
-
 
 class leak_checker(object):
 
@@ -179,7 +178,7 @@ class TestMultiprocessing(TestCase):
             self.assertTrue(t1.eq(1).all())
             self.assertTrue(id(t1.storage()) == id(t2.storage()))
             e.set()
-            p.join(1)
+            p.join()
             self.assertFalse(p.is_alive())
 
         with leak_checker(self) as lc:
@@ -228,15 +227,15 @@ class TestMultiprocessing(TestCase):
             for i in range(repeat):
                 do_test()
 
-    @unittest.skipIf(platform == 'darwin', "file descriptor strategy is not supported on OS X")
+    @unittest.skipIf(platform == 'darwin' or platform == 'win32', "file descriptor strategy is not supported on OS X and Windows")
     def test_fd_sharing(self):
         self._test_sharing(repeat=TEST_REPEATS)
 
-    @unittest.skipIf(platform == 'darwin', "file descriptor strategy is not supported on OS X")
+    @unittest.skipIf(platform == 'darwin' or platform == 'win32', "file descriptor strategy is not supported on OS X and Windows")
     def test_fd_preserve_sharing(self):
         self._test_preserve_sharing(repeat=TEST_REPEATS)
 
-    @unittest.skipIf(platform == 'darwin', "file descriptor strategy is not supported on OS X")
+    @unittest.skipIf(platform == 'darwin' or platform == 'win32', "file descriptor strategy is not supported on OS X and Windows")
     def test_fd_pool(self):
         self._test_pool(repeat=TEST_REPEATS)
 
@@ -397,7 +396,7 @@ class TestMultiprocessing(TestCase):
         t.share_memory_()
         self.assertTrue(t.is_shared())
 
-    @unittest.skipIf(platform == 'darwin', "file descriptor strategy is not supported on OS X")
+    @unittest.skipIf(platform == 'darwin' or platform == 'win32', "file descriptor strategy is not supported on OS X and Windows")
     def test_is_shared(self):
         self._test_is_shared()
 

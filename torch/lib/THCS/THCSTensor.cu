@@ -87,8 +87,8 @@ __global__ void THCSTensor_valueSparseUnionKernel(
     const IndexType t_nnz, const IndexType s_nnz) {
   IndexType t_indskip = t_indices.strides[0];
   IndexType s_indskip = s_indices.strides[0];
-  long cmp, d;
-  long nDimI = r_indices.sizes[0];
+  int64_t cmp, d;
+  int64_t nDimI = r_indices.sizes[0];
   IndexType valueSize = r_values.strides[0];
   IndexType r_i = 0, t_i = 0, s_i = 0;
   while (t_i < t_nnz || s_i < s_nnz) {
@@ -126,8 +126,8 @@ __global__ void THCSTensor_indexSparseUnionKernel(
   IndexType r_indskip = r_indices.strides[0];
   IndexType t_indskip = t_indices.strides[0];
   IndexType s_indskip = s_indices.strides[0];
-  long cmp, d;
-  long nDimI = r_indices.sizes[0];
+  int64_t cmp, d;
+  int64_t nDimI = r_indices.sizes[0];
   IndexType r_i = 0, t_i = 0, s_i = 0;
   while (t_i < t_nnz || s_i < s_nnz) {
     if (t_i >= t_nnz) {
@@ -176,8 +176,8 @@ __global__ void THCSTensor_valueSparseIntersectionKernel(
     const IndexType t_nnz, const IndexType s_nnz) {
   IndexType t_indskip = t_indices.strides[0];
   IndexType s_indskip = s_indices.strides[0];
-  long match, d;
-  long nDimI = r_indices.sizes[0];
+  int64_t match, d;
+  int64_t nDimI = r_indices.sizes[0];
   IndexType valueSize = r_values.strides[0];
   IndexType r_i = 0, t_i = 0, s_i = 0;
   while (t_i < t_nnz && s_i < s_nnz) {
@@ -209,8 +209,8 @@ __global__ void THCSTensor_indexSparseIntersectionKernel(
   IndexType r_indskip = r_indices.strides[0];
   IndexType t_indskip = t_indices.strides[0];
   IndexType s_indskip = s_indices.strides[0];
-  long match, d;
-  long nDimI = r_indices.sizes[0];
+  int64_t match, d;
+  int64_t nDimI = r_indices.sizes[0];
   IndexType r_i = 0, t_i = 0, s_i = 0;
   while (t_i < t_nnz && s_i < s_nnz) {
     match = 1;

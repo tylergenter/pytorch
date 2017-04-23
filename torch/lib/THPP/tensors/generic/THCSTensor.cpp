@@ -7,9 +7,9 @@
 #define const_storage_cast(storage) \
   dynamic_cast<const THCStorage<real>&>(storage)
 #define const_long_cast(tensor) \
-  dynamic_cast<const THCSTensor<long>&>(tensor)
+  dynamic_cast<const THCSTensor<int64_t>&>(tensor)
 #define const_byte_cast(tensor) \
-  dynamic_cast<const THCSTensor<unsigned char>&>(tensor)
+  dynamic_cast<const THCSTensor<uint8_t>&>(tensor)
 
 
 template<>
@@ -51,11 +51,11 @@ int THCSTensor<real>::nDim() const {
 
 template<>
 auto THCSTensor<real>::sizes() const -> long_range {
-  return std::vector<long>(tensor->size, tensor->size + tensor->nDimensionI);
+  return std::vector<int64_t>(tensor->size, tensor->size + tensor->nDimensionI);
 }
 
 template<>
-const long* THCSTensor<real>::rawSizes() const {
+const int64_t* THCSTensor<real>::rawSizes() const {
   return tensor->size;
 }
 
@@ -65,7 +65,7 @@ auto THCSTensor<real>::strides() const -> long_range {
 }
 
 template<>
-const long* THCSTensor<real>::rawStrides() const {
+const int64_t* THCSTensor<real>::rawStrides() const {
   throw std::runtime_error("THCSTensor::rawStrides() not supported");
 }
 
@@ -80,7 +80,7 @@ std::size_t THCSTensor<real>::elementSize() const {
 }
 
 template<>
-long long THCSTensor<real>::numel() const {
+int64_t THCSTensor<real>::numel() const {
   throw std::runtime_error("THCSTensor::numel not supported");
 }
 
@@ -110,12 +110,12 @@ const void* THCSTensor<real>::cdata() const {
 }
 
 template<>
-auto THCSTensor<real>::resize(const std::initializer_list<long> &new_size) -> THCSTensor& {
+auto THCSTensor<real>::resize(const std::initializer_list<int64_t> &new_size) -> THCSTensor& {
   throw std::runtime_error("THCSTensor::resize() not supported");
 }
 
 template<>
-auto THCSTensor<real>::resize(const std::vector<long> &new_size) -> THCSTensor& {
+auto THCSTensor<real>::resize(const std::vector<int64_t> &new_size) -> THCSTensor& {
   throw std::runtime_error("THCSTensor::resize() not supported");
 }
 
@@ -159,14 +159,14 @@ auto THCSTensor<real>::setStorage(const Storage& storage,
 template<>
 auto THCSTensor<real>::narrow(const Tensor& src,
                              int dimension,
-                             long firstIndex,
-                             long size) -> THCSTensor& {
+                             int64_t firstIndex,
+                             int64_t size) -> THCSTensor& {
   throw std::runtime_error("THCSTensor::narrow not supported");
 }
 
 template<>
 auto THCSTensor<real>::select(const Tensor& src, int dimension,
-                             long sliceIndex) -> THCSTensor& {
+                             int64_t sliceIndex) -> THCSTensor& {
   throw std::runtime_error("THCSTensor::select not supported");
 }
 
@@ -179,7 +179,7 @@ auto THCSTensor<real>::transpose(const Tensor& src, int dimension1,
 
 template<>
 auto THCSTensor<real>::unfold(const Tensor& src, int dimension,
-                             long size, long step) ->THCSTensor& {
+                             int64_t size, int64_t step) ->THCSTensor& {
   throw std::runtime_error("THCSTensor::unfold not supported");
 }
 
@@ -224,7 +224,7 @@ auto THCSTensor<real>::diag(const Tensor& src, int k) -> THCSTensor& {
 }
 
 template<>
-auto THCSTensor<real>::eye(long n, long m) -> THCSTensor& {
+auto THCSTensor<real>::eye(int64_t n, int64_t m) -> THCSTensor& {
   throw std::runtime_error("THCSTensor::eye() not supported");
 }
 
@@ -242,17 +242,17 @@ auto THCSTensor<real>::sort(const Tensor& ri, const Tensor& src,
 
 template<>
 auto THCSTensor<real>::topk(const Tensor& ri, const Tensor& src,
-                          long k, int dim, int dir, int sorted) -> THCSTensor& {
+                          int64_t k, int dim, int dir, int sorted) -> THCSTensor& {
   throw std::runtime_error("THCSTensor::topk() not supported");
 }
 
 template<>
-auto THCSTensor<real>::tril(const Tensor& src, long k) -> THCSTensor& {
+auto THCSTensor<real>::tril(const Tensor& src, int64_t k) -> THCSTensor& {
   throw std::runtime_error("THCSTensor::tril() not supported");
 }
 
 template<>
-auto THCSTensor<real>::triu(const Tensor& src, long k) -> THCSTensor& {
+auto THCSTensor<real>::triu(const Tensor& src, int64_t k) -> THCSTensor& {
   throw std::runtime_error("THCSTensor::triu() not supported");
 }
 
@@ -556,7 +556,7 @@ auto THCSTensor<real>::min(const Tensor& indices_, const Tensor& src, int dimens
 }
 
 template<>
-auto THCSTensor<real>::kthvalue(const Tensor& indices_, const Tensor& src, long k, int dimension) -> THCSTensor& {
+auto THCSTensor<real>::kthvalue(const Tensor& indices_, const Tensor& src, int64_t k, int dimension) -> THCSTensor& {
   throw std::runtime_error("THCSTensor::kthvalue() not supported");
 }
 

@@ -23,7 +23,7 @@ THDescBuff THLongStorage_sizeDesc(const THLongStorage *size) {
   int i;
   for(i = 0; i < size->size; i++) {
     if(n >= L) break;
-    n += snprintf(str+n, L-n, "%ld", size->data[i]);
+    n += snprintf(str+n, L-n, "%lld", size->data[i]);
     if(i < size->size-1) {
       n += snprintf(str+n, L-n, " x ");
     }

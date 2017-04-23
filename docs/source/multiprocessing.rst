@@ -50,8 +50,8 @@ File descriptor - ``file_descriptor``
 
 .. note::
 
-    This is the default strategy (except for macOS and OS X where it's not
-    supported).
+    This is the default strategy (except for macOS, OS X, and Window where it's
+    not supported).
 
 This strategy will use file descriptors as shared memory handles. Whenever a
 storage is moved to shared memory, a file descriptor obtained from ``shm_open``
@@ -86,3 +86,8 @@ allocated by the group. If it finds that any of them still exist, they will be
 deallocated. We've tested this method and it prooved to be robust to various
 failures. Still, if your system has high enough limits, and ``file_descriptor``
 is a supported strategy, we do not recommend switching to this one.
+
+On Windows, this uses named shared memory. The above mentioned problems are
+nonexistent, since we don't actually create any files and all the handles are
+automatically closed when the processes terminates. Thus, there isn't a
+``torch_shm_manager`` daemon.

@@ -14,8 +14,8 @@
 
 namespace thpp {
 
-struct Tensor {
-  using long_range = std::vector<long>;
+struct THPP_CLASS Tensor {
+  using long_range = std::vector<int64_t>;
 
   Tensor() {};
   Tensor(const Tensor& other) = delete;
@@ -29,11 +29,11 @@ struct Tensor {
   virtual int nDim() const = 0;
   virtual long_range sizes() const = 0;
   virtual long_range strides() const = 0;
-  virtual const long* rawSizes() const = 0;
-  virtual const long* rawStrides() const = 0;
+  virtual const int64_t* rawSizes() const = 0;
+  virtual const int64_t* rawStrides() const = 0;
   virtual std::size_t storageOffset() const = 0;
   virtual std::size_t elementSize() const = 0;
-  virtual long long numel() const = 0;
+  virtual int64_t numel() const = 0;
   virtual bool isContiguous() const = 0;
   virtual void* data() = 0;
   virtual const void* data() const = 0;
@@ -42,8 +42,8 @@ struct Tensor {
   virtual Tensor& retain() = 0;
   virtual Tensor& free() = 0;
 
-  virtual Tensor& resize(const std::initializer_list<long>& new_size) = 0;
-  virtual Tensor& resize(const std::vector<long>& new_size) = 0;
+  virtual Tensor& resize(const std::initializer_list<int64_t>& new_size) = 0;
+  virtual Tensor& resize(const std::vector<int64_t>& new_size) = 0;
   virtual Tensor& resize(THLongStorage *size,
                          THLongStorage *stride) = 0;
   virtual Tensor& resizeAs(const Tensor& src) = 0;
@@ -58,11 +58,11 @@ struct Tensor {
                              THLongStorage *stride) = 0;
   virtual Tensor& narrow(const Tensor& src,
                          int dimension,
-                         long firstIndex,
-                         long size) = 0;
-  virtual Tensor& select(const Tensor& src, int dimension, long sliceIndex) = 0;
+                         int64_t firstIndex,
+                         int64_t size) = 0;
+  virtual Tensor& select(const Tensor& src, int dimension, int64_t sliceIndex) = 0;
   virtual Tensor& transpose(const Tensor& src, int dimension1, int dimension2) = 0;
-  virtual Tensor& unfold(const Tensor& src, int dimension, long size, long step) = 0;
+  virtual Tensor& unfold(const Tensor& src, int dimension, int64_t size, int64_t step) = 0;
   virtual Tensor& squeeze(const Tensor& src, int dimension) = 0;
   virtual Tensor& unsqueeze(const Tensor& src, int dimension) = 0;
 
@@ -80,7 +80,7 @@ struct Tensor {
   virtual Tensor& cremainder(const Tensor& src1, const Tensor& src2) = 0;
   virtual Tensor& max(const Tensor& indices_, const Tensor& src, int dimension) = 0;
   virtual Tensor& min(const Tensor& indices_, const Tensor& src, int dimension) = 0;
-  virtual Tensor& kthvalue(const Tensor& indices_, const Tensor& src, long k, int dimension) = 0;
+  virtual Tensor& kthvalue(const Tensor& indices_, const Tensor& src, int64_t k, int dimension) = 0;
   virtual Tensor& mode(const Tensor& indices_, const Tensor& src, int dimension) = 0;
   virtual Tensor& median(const Tensor& indices_, const Tensor& src, int dimension) = 0;
   virtual Tensor& sum(const Tensor& src, int dimension) = 0;
@@ -94,14 +94,14 @@ struct Tensor {
   virtual Tensor& zero() = 0;
 
   virtual Tensor& diag(const Tensor& src, int k) = 0;
-  virtual Tensor& eye(long n, long m) = 0;
+  virtual Tensor& eye(int64_t n, int64_t m) = 0;
   // virtual Tensor& randperm() = 0; TODO
   virtual Tensor& sort(const Tensor& ri, const Tensor& src,
                        int dimension, int desc) = 0;
   virtual Tensor& topk(const Tensor& ri, const Tensor& src,
-                       long k, int dim, int dir, int sorted) = 0;
-  virtual Tensor& tril(const Tensor& src, long k) = 0;
-  virtual Tensor& triu(const Tensor& src, long k) = 0;
+                       int64_t k, int dim, int dir, int sorted) = 0;
+  virtual Tensor& tril(const Tensor& src, int64_t k) = 0;
+  virtual Tensor& triu(const Tensor& src, int64_t k) = 0;
   virtual Tensor& catArray(const std::vector<Tensor*>& inputs, int dimension) = 0;
   virtual int equal(const Tensor& other) const = 0;
   virtual Tensor& ltTensor(const Tensor& r, const Tensor& tb) = 0;
@@ -205,6 +205,6 @@ struct TensorScalarInterface : public Tensor {
 };
 
 using FloatTensor = TensorScalarInterface<double>;
-using IntTensor = TensorScalarInterface<long long>;
+using IntTensor = TensorScalarInterface<int64_t>;
 
 } // namespace thpp

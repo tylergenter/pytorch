@@ -2708,8 +2708,10 @@ class TestTorch(TestCase):
         b += [(t1.storage(), t1.storage(), t2.storage())]
         b += [a[0].storage()[0:2]]
         for use_name in (False, True):
-            with tempfile.NamedTemporaryFile() as f:
+            with tempfile.NamedTemporaryFile(delete=True) as f:
                 handle = f if not use_name else f.name
+                if sys.platform == 'win32' and use_name:
+                    handle = tempfile.mktemp()
                 torch.save(b, handle)
                 f.seek(0)
                 c = torch.load(handle)

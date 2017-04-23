@@ -562,7 +562,7 @@ static void _prepare_grad_output(THPFunction *self, THPObjectPtr& raw_grad_outpu
 #ifdef WITH_CUDA
       gpu_guard.setDevice(std::get<1>(info));
 #endif
-      std::vector<long> &sizes = std::get<2>(info);
+      std::vector<int64_t> &sizes = std::get<2>(info);
       THPObjectPtr grad_size = THPSize_New(sizes.size(), sizes.data());
       THPObjectPtr new_grad = PyObject_CallFunctionObjArgs(tensor_cls, grad_size.get(), NULL);
       if (!new_grad) throw python_error();
@@ -768,8 +768,8 @@ static struct PyGetSetDef THPFunction_properties[] = {
   {"dirty_tensors", &getObject<&THPFunction::dirty_tensors>, &setObject<&THPFunction::dirty_tensors>, NULL, NULL},
   {"needs_input_grad", &getObject<&THPFunction::needs_input_grad>, &setObject<&THPFunction::needs_input_grad>, NULL, NULL},
   {"requires_grad", &getImplMember<bool, &Function::requires_grad, PyBool_FromLong>, &setRequiresGrad, NULL, NULL},
-  {"num_inputs", &getMember<int, &THPFunction::num_inputs, PyInt_FromLong>, NULL, NULL, NULL},
-  {"num_outputs", &getImplMember<int, &Function::num_outputs, PyInt_FromLong>, NULL, NULL, NULL},
+  {"num_inputs", &getMember<int, &THPFunction::num_inputs, PyLong_FromLong>, NULL, NULL, NULL},
+  {"num_outputs", &getImplMember<int, &Function::num_outputs, PyLong_FromLong>, NULL, NULL, NULL},
   {NULL}
 };
 

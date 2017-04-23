@@ -2,12 +2,12 @@
 #error "You must define TH_GENERIC_FILE before including THGenerateIntTypes.h"
 #endif
 
-#define real unsigned char
-#define accreal long
+#define real uint8_t
+#define accreal int64_t
 #define Real Byte
 #define TH_CONVERT_REAL_TO_ACCREAL(_val) (accreal)(_val)
 #define TH_CONVERT_ACCREAL_TO_REAL(_val) (real)(_val)
-#define THInf UCHAR_MAX
+#define THInf UINT8_MAX
 #define TH_REAL_IS_BYTE
 #line 1 TH_GENERIC_FILE
 #include TH_GENERIC_FILE
@@ -20,16 +20,18 @@
 #undef TH_CONVERT_ACCREAL_TO_REAL
 
 
-#define real char
-#define accreal long
+#define real int8_t
+#define ureal uint8_t
+#define accreal int64_t
 #define Real Char
-#define THInf CHAR_MAX
+#define THInf INT8_MAX
 #define TH_CONVERT_REAL_TO_ACCREAL(_val) (accreal)(_val)
 #define TH_CONVERT_ACCREAL_TO_REAL(_val) (real)(_val)
 #define TH_REAL_IS_CHAR
 #line 1 TH_GENERIC_FILE
 #include TH_GENERIC_FILE
 #undef real
+#undef ureal
 #undef accreal
 #undef Real
 #undef THInf
@@ -37,16 +39,18 @@
 #undef TH_CONVERT_REAL_TO_ACCREAL
 #undef TH_CONVERT_ACCREAL_TO_REAL
 
-#define real short
-#define accreal long
+#define real int16_t
+#define ureal uint16_t
+#define accreal int64_t
 #define TH_CONVERT_REAL_TO_ACCREAL(_val) (accreal)(_val)
 #define TH_CONVERT_ACCREAL_TO_REAL(_val) (real)(_val)
 #define Real Short
-#define THInf SHRT_MAX
+#define THInf INT16_MAX
 #define TH_REAL_IS_SHORT
 #line 1 TH_GENERIC_FILE
 #include TH_GENERIC_FILE
 #undef real
+#undef ureal
 #undef accreal
 #undef Real
 #undef THInf
@@ -54,16 +58,18 @@
 #undef TH_CONVERT_REAL_TO_ACCREAL
 #undef TH_CONVERT_ACCREAL_TO_REAL
 
-#define real int
-#define accreal long
+#define real int32_t
+#define ureal uint32_t
+#define accreal int64_t
 #define TH_CONVERT_REAL_TO_ACCREAL(_val) (accreal)(_val)
 #define TH_CONVERT_ACCREAL_TO_REAL(_val) (real)(_val)
 #define Real Int
-#define THInf INT_MAX
+#define THInf INT32_MAX
 #define TH_REAL_IS_INT
 #line 1 TH_GENERIC_FILE
 #include TH_GENERIC_FILE
 #undef real
+#undef ureal
 #undef accreal
 #undef Real
 #undef THInf
@@ -71,16 +77,18 @@
 #undef TH_CONVERT_REAL_TO_ACCREAL
 #undef TH_CONVERT_ACCREAL_TO_REAL
 
-#define real long
-#define accreal long
+#define real int64_t
+#define ureal uint64_t
+#define accreal int64_t
 #define TH_CONVERT_REAL_TO_ACCREAL(_val) (accreal)(_val)
 #define TH_CONVERT_ACCREAL_TO_REAL(_val) (real)(_val)
 #define Real Long
-#define THInf LONG_MAX
+#define THInf INT64_MAX
 #define TH_REAL_IS_LONG
 #line 1 TH_GENERIC_FILE
 #include TH_GENERIC_FILE
 #undef real
+#undef ureal
 #undef accreal
 #undef Real
 #undef THInf
