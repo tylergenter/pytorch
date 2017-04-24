@@ -14,16 +14,15 @@
 
 
 #if PY_MAJOR_VERSION == 2
-#error fixme
 #define THPUtils_checkLong(obj) ((PyLong_Check(obj) || PyInt_Check(obj)) && !PyBool_Check(obj))
 #define THPUtils_unpackLong(obj)                                               \
-    (PyLong_Check(obj) ? PyLong_AsLong(obj) :                                  \
+    (PyLong_Check(obj) ? (int64_t) PyLong_AsLongLong(obj) :                    \
     PyInt_Check(obj) ? PyInt_AsLong(obj) :                                     \
     (throw std::runtime_error("Could not unpack long"), 0))
 #else
 #define THPUtils_checkLong(obj) (PyLong_Check(obj) && !PyBool_Check(obj))
 #define THPUtils_unpackLong(obj)                                               \
-    (PyLong_Check(obj) ? PyLong_AsLongLong(obj) :                                  \
+    (PyLong_Check(obj) ? PyLong_AsLongLong(obj) :                              \
     (throw std::runtime_error("Could not unpack long"), 0))
 #endif
 

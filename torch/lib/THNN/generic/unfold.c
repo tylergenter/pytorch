@@ -106,6 +106,9 @@ void THNN_(unfolded_copy)(
 
   int64_t k;
   real *input_data = THTensor_(data)(input);
+  real *finput_data = THTensor_(data)(finput);
+
+#pragma omp parallel for private(k)
   for(k = 0; k < (int64_t)nInputPlane*kH*kW; k++) {
     int64_t nip = k / (kH*kW);
     int64_t rest = k % (kH*kW);
@@ -113,7 +116,7 @@ void THNN_(unfolded_copy)(
     int64_t kw = rest % kW;
     int x, y;
     int64_t ix, iy;
-    real *dst = input_data + nip*((size_t)kH*kW*outputHeight*outputWidth) + kh*((size_t)kW*outputHeight*outputWidth) + kw*((size_t)outputHeight*outputWidth);
+    real *dst = finput_data + nip*((size_t)kH*kW*outputHeight*outputWidth) + kh*((size_t)kW*outputHeight*outputWidth) + kw*((size_t)outputHeight*outputWidth);
     real *src = input_data + nip*((size_t)inputHeight*inputWidth);
     if (padW > 0 || padH > 0) {
       int64_t lpad,rpad;

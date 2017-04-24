@@ -56,8 +56,8 @@ static inline void THNN_(SpatialConvolutionMM_shapeCheck)(
 static THTensor* THNN_(view_weight_MM2d)(THTensor *weight) {
   weight = THTensor_(newContiguous)(weight);
   if (weight->nDimension == 4) {
-    long s1 = weight->size[0];
-    long s2 = weight->size[1] * weight->size[2] * weight->size[3];
+    int64_t s1 = weight->size[0];
+    int64_t s2 = weight->size[1] * weight->size[2] * weight->size[3];
     THTensor *old_weight = weight;
     weight = THTensor_(newWithStorage2d)(weight->storage, weight->storageOffset,
 					 s1, -1, s2, -1);
