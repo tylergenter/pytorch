@@ -145,6 +145,15 @@ class leak_checker(object):
                     return True
         return False
 
+# Needs to be a global class so that pickle works
+class inherit_tensor_sub_process(mp.Process):
+    def __init__(self, tensor):
+        super(inherit_tensor_sub_process, self).__init__()
+        self.tensor = tensor
+        self.daemon = True
+
+    def run(self):
+        self.tensor.add_(3)
 
 class TestMultiprocessing(TestCase):
 
@@ -267,17 +276,8 @@ class TestMultiprocessing(TestCase):
                 queue_put()
 
     def test_inherit_tensor(self):
-        class SubProcess(mp.Process):
-            def __init__(self, tensor):
-                super(SubProcess, self).__init__()
-                self.tensor = tensor
-                self.daemon = True
-
-            def run(self):
-                self.tensor.add_(3)
-
         t = torch.zeros(5, 5)
-        p = SubProcess(t.share_memory_())
+        p = inherit_tensor_sub_process(t.share_memory_())
         p.start()
         p.join(1)
         self.assertEqual(t, torch.ones(5, 5) * 3, 0)

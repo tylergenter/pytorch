@@ -153,6 +153,7 @@ Commands to install from binaries via Conda or pip wheels are on our website:
 
 If you are installing from source, we highly recommend installing an [Anaconda](https://www.continuum.io/downloads) environment.
 You will get a high-quality BLAS library (MKL) and you get a controlled compiler version regardless of your Linux distro.
+For Windows, see the Compile section of [README_Windows.md](README_Windows.md)
 
 Once you have [anaconda](https://www.continuum.io/downloads) installed, here are the instructions.
 

@@ -35,6 +35,8 @@ except:
     pass
 
 if platform.system() == 'Windows':
+    os.environ['PATH'] = os.path.dirname(__file__) + '\\lib\\;' + os.environ['PATH']
+
     from torch._C import *
 
     __all__ += [name for name in dir(_C)
