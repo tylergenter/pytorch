@@ -241,8 +241,9 @@ void THNN_(TemporalMaxPooling_updateGradInput)(
       for(y = 0; y < framesize; y++)
       {
         /* compute local max: */
-        int64_t maxindex = (int64_t)xp[y];
-        gip[maxindex*framesize+y] += gop[y];
+        int64_t maxindex = (long)xp[y];
+	if (maxindex != -1)
+	  gip[maxindex*framesize+y] += gop[y];
       }
     }
   }
@@ -267,8 +268,9 @@ void THNN_(TemporalMaxPooling_updateGradInput)(
         for(y = 0; y < framesize; y++)
         {
           /* compute local max: */
-          int64_t maxindex = (int64_t)xp[y];
-          gip[maxindex*framesize+y] += gop[y];
+          int64_t maxindex = (long)xp[y];
+	  if (maxindex != -1)
+	    gip[maxindex*framesize+y] += gop[y];
         }
       }
     }

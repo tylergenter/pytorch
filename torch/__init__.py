@@ -8,6 +8,7 @@ It has a CUDA counterpart, that enables you to run your tensor computations
 on an NVIDIA GPU with compute capability >= 2.0.
 """
 
+import os
 import platform
 import sys
 from ._utils import _import_dotted_name
@@ -348,6 +349,8 @@ import torch.autograd
 import torch.nn
 import torch.optim
 import torch.multiprocessing
+import torch.sparse
+_C._init_names(list(torch._tensor_classes) + list(torch._storage_classes))
 
 # attach docstrings to torch and tensor functions
 from . import _torch_docs, _tensor_docs

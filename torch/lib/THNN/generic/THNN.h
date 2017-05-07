@@ -458,7 +458,7 @@ TH_API void THNN_(SoftShrink_updateGradInput)(
 TH_API void THNN_(IndexLinear_updateOutput)(
           THNNState *state,
           THIndexTensor *keys,
-          long keysOffset,
+          int64_t keysOffset,
           THTensor *values,
           THIndexTensor *sizes,
           THIndexTensor *cumSumSizes,
@@ -470,7 +470,7 @@ TH_API void THNN_(IndexLinear_updateOutput)(
 TH_API void THNN_(IndexLinear_accGradParameters)(
           THNNState *state,
           THIndexTensor *keys,
-          long keysOffset,
+          int64_t keysOffset,
           THTensor *values,
           THIndexTensor *sizes,
           THIndexTensor *cumSumSizes,
@@ -485,7 +485,7 @@ TH_API void THNN_(IndexLinear_accGradParameters)(
 TH_API void THNN_(IndexLinear_accUpdateGradParameters)(
           THNNState *state,
           THIndexTensor *keys,
-          long keysOffset,
+          int64_t keysOffset,
           THTensor *values,
           THIndexTensor *sizes,
           THIndexTensor *cumSumSizes,
@@ -502,7 +502,7 @@ TH_API void THNN_(IndexLinear_updateParameters)(
           THTensor *bias,
           THIndexTensor *runningKeys,
           THIndexTensor *cumSumSizes,
-          long keysOffset,
+          int64_t keysOffset,
           accreal weightDecay,
           accreal learningRate);
 

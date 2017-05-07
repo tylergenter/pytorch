@@ -303,19 +303,19 @@ Normalization layers
     :members:
 
 :hidden:`InstanceNorm1d`
-~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: InstanceNorm1d
     :members:
 
 :hidden:`InstanceNorm2d`
-~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: InstanceNorm2d
     :members:
 
 :hidden:`InstanceNorm3d`
-~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: InstanceNorm3d
     :members:
@@ -501,6 +501,12 @@ Loss functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: MultiMarginLoss
+    :members:
+
+:hidden:`TripletMarginLoss`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: TripletMarginLoss
     :members:
 
 
@@ -838,6 +844,11 @@ Loss functions
 
 .. autofunction:: smooth_l1_loss
 
+:hidden:`triplet_margin_loss`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: triplet_margin_loss
+
 Vision functions
 ----------------
 
@@ -855,9 +866,12 @@ torch.nn.init
 =============
 
 .. currentmodule:: torch.nn.init
+.. autofunction:: calculate_gain
 .. autofunction:: uniform
 .. autofunction:: normal
 .. autofunction:: constant
+.. autofunction:: eye
+.. autofunction:: dirac
 .. autofunction:: xavier_uniform
 .. autofunction:: xavier_normal
 .. autofunction:: kaiming_uniform

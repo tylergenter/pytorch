@@ -23,8 +23,8 @@ const int64_t NNZ_PER_BLOCK_MAX = 1024;
         uint64_t assumed;                                               \
         do {                                                            \
             assumed = old;                                              \
-            old = atomicCAS((unsigned long long *) address_as_ull, (unsigned long long) assumed, \
-                            (unsigned long long) __double_as_longlong(func(val, __longlong_as_double(assumed)))); \
+            old = atomicCAS((uint64_t *) address_as_ull, (uint64_t) assumed, \
+                            (uint64_t) __double_as_longlong(func(val, __longlong_as_double(assumed)))); \
         } while (assumed != old);                                       \
     }                                                                   \
     __device__  void atomic_##func(float *address, float val) {         \

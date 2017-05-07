@@ -24,7 +24,7 @@ call:build THNN
 
 IF "%~1"=="--with-cuda" (
   call:build THC
-  call:build THCS
+  call:build THCS 
   call:build THCUNN
 )
 
